@@ -5,6 +5,7 @@ using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json.Nodes;
+using System.Xml.Linq;
 
 if (args.Length != 2 || args[0] != "--package-version") throw new ArgumentException("Pass --package-version <version>.");
 var version = args[1];
@@ -30,7 +31,13 @@ var hash = Convert.ToHexStringLower(await SHA256.HashDataAsync(native));
 var consumer = "tests/NuGetConsumer/NuGetConsumer.csproj";
 var cache = Path.Combine(root, "artifacts/release-consumers", Guid.NewGuid().ToString("N"));
 var properties = new[] { "-p:CandidateNativePackageId=Jazor.LibNode", "-p:CandidatePackageVersion=" + version };
-await Run(["restore", consumer, .. properties, "--packages", cache, "--source", packages, "--source", "https://api.nuget.org/v3/index.json", "--force"]);
+var config = Path.Combine(root, "artifacts/release-consumer.NuGet.Config");
+new XDocument(new XElement("configuration", new XElement("packageSources",
+    new XElement("clear"),
+    new XElement("add", new XAttribute("key", "release"), new XAttribute("value", packages)),
+    new XElement("add", new XAttribute("key", "nuget.org"), new XAttribute("value", "https://api.nuget.org/v3/index.json")))))
+    .Save(config);
+await Run(["restore", consumer, .. properties, "--packages", cache, "--configfile", config, "--force"]);
 var assets = JsonNode.Parse(await File.ReadAllTextAsync(Path.Combine(root, "tests/NuGetConsumer/obj/project.assets.json")))!;
 if (assets["libraries"]!.AsObject().Any(item => item.Key.StartsWith("Microsoft.JavaScript.LibNode", StringComparison.OrdinalIgnoreCase)))
     throw new InvalidDataException("Release consumer contains competing native runtime assets.");

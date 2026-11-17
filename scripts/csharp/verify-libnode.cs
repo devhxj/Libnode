@@ -118,8 +118,14 @@ await Run("dotnet", ["pack", "src/Jazor.LibNode.Runtime", "-p:LibNodeRid=" + rid
 var consumer = Path.Combine(root, "tests/NuGetConsumer/NuGetConsumer.csproj");
 var packageCache = Path.Combine(root, "artifacts/consumer-packages");
 var nativePackage = "-p:CandidateNativePackageId=Jazor.LibNode." + rid;
+var consumerConfig = Path.Combine(root, "artifacts/consumer.NuGet.Config");
+new XDocument(new XElement("configuration", new XElement("packageSources",
+    new XElement("clear"),
+    new XElement("add", new XAttribute("key", "candidate"), new XAttribute("value", packages)),
+    new XElement("add", new XAttribute("key", "nuget.org"), new XAttribute("value", "https://api.nuget.org/v3/index.json")))))
+    .Save(consumerConfig);
 await Run("dotnet", ["restore", consumer, "-p:CandidatePackageVersion=" + version, nativePackage, "--packages", packageCache,
-    "--source", packages, "--source", "https://api.nuget.org/v3/index.json", "--force"], root, "consumer-restore.log");
+    "--configfile", consumerConfig, "--force"], root, "consumer-restore.log");
 var managedVersion = sourceLock["nodeApi"]!["version"]!.GetValue<string>();
 var managedNuspec = XDocument.Load(Path.Combine(packageCache, "microsoft.javascript.nodeapi", managedVersion, "microsoft.javascript.nodeapi.nuspec"));
 var packageRevision = managedNuspec.Descendants().Single(element => element.Name.LocalName == "repository").Attribute("commit")?.Value;
