@@ -1,0 +1,7 @@
+<Project>
+  <!-- Only RIDs with a native build, runtime tests and a real NuGet consumer
+       belong in the release closure. Other build candidates remain unadvertised. -->
+  <ItemGroup>
+    <LibNodeRuntimePackage Include="linux-x64" />
+  </ItemGroup>
+</Project>

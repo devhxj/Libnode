@@ -22,6 +22,7 @@ been published._
 - [Native source and embedding port](native/libnode/README.md)
 - [Compatibility results and platform requirements](docs/local-verification.md)
 - [Audit of 66 open upstream issues](docs/upstream-issue-audit.md)
+- [Releases and NuGet publishing](docs/releases.md)
 - [Node API for .NET documentation](https://microsoft.github.io/node-api-dotnet)
 
 ### Minimal example — .NET calling JavaScript
@@ -69,6 +70,8 @@ see [development instructions](README-DEV.md) to reproduce them.
 For building, testing and packaging, see [README-DEV.md](README-DEV.md).
 The Linux candidate workflow repeats the native build, upstream compatibility tests,
 NuGet consumer and issue regressions, and preserves their reports.
+Release tags publish the verified package set through GitHub Actions, using NuGet
+trusted publishing. See [the release guide](docs/releases.md) for setup and dry runs.
 
 ## License
 

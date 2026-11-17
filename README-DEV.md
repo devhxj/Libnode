@@ -75,7 +75,15 @@ SHA512, then loaded and called directly without Node/npm CLI tooling.
 
 ## Candidate packages
 
-Once real native assets, provenance and licenses have been staged:
+After native verification and the issue regression lane pass, pack the complete
+release catalog and run its metapackage consumer:
+
+```text
+dotnet run --file scripts/csharp/publish-nuget.cs -- --package-version X.Y.Z --skip-push
+dotnet run --file scripts/csharp/verify-release.cs
+```
+
+For individual candidate package inspection, the underlying pack commands are:
 
 ```text
 dotnet pack src/Jazor.LibNode.Runtime -p:LibNodeRid=linux-x64 -p:JazorReleaseVersion=<release-version> -o artifacts/packages
@@ -84,15 +92,17 @@ dotnet pack src/Jazor.LibNode -p:JazorReleaseVersion=<release-version> -p:Runtim
 
 RID packages carry `runtimes/<rid>/native/libnode.{dll,so,dylib}`, `native-build.json`,
 `NODE-LICENSE`, `EMBEDDING-LICENSE` and `NOTICE`. Packaging fails when required inputs
-are absent. The metapackage requires all four candidate RID packages and uses exact
+are absent. The metapackage requires all RID packages in the release catalog and uses exact
 dependency versions. NuGet versions are supplied by the release pipeline; the Node
 version is separate upstream metadata. Candidate packing is not release acceptance.
 
 Declared support requires native and managed compatibility tests on each target,
 actual NuGet consumers, deployment checks and real native-addon calls. The extra
 RIDs carried by the old Microsoft package (`win-arm64`, `linux-arm64`, `win-x86`)
-remain unvalidated here. No official publishing workflow is configured in this
-repository yet; the checked-in workflow builds and verifies candidates only.
+remain unvalidated here. The official publishing entry is
+`.github/workflows/nuget-publish-ref.yml`, with tag-driven versions, NuGet trusted
+publishing and the same verification gates for manual dry runs.
+See [the release guide](docs/releases.md) for setup and release preparation.
 
 See [source and port notes](native/libnode/README.md),
 [the build-reference review](docs/sigma-build-reference.md), and

@@ -569,7 +569,7 @@
       "updatedAt": "2025-08-09T20:31:29Z",
       "commentsReviewed": 5,
       "classification": "Release infrastructure",
-      "assessment": "Upstream ADO signing/npm release backlog; candidate CI exists; official publication is not configured in this repository."
+      "assessment": "Upstream ADO signing/npm release backlog; candidate CI and a tag-driven publishing workflow are configured; account trust settings are required."
     },
     {
       "number": 64,

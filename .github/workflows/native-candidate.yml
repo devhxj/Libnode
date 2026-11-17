@@ -1,9 +1,19 @@
 name: Linux native candidate
 
 on:
+  workflow_call:
+    inputs:
+      release_ref:
+        required: true
+        type: string
+      package_version:
+        required: false
+        default: ''
+        type: string
   workflow_dispatch:
   pull_request:
   push:
+    branches: [main]
     paths:
       - native/**
       - scripts/csharp/**
@@ -15,6 +25,8 @@ on:
       - Jazor.LibNode.slnx
       - README.md
       - NOTICE.txt
+      - CHANGELOG.md
+      - .github/workflows/nuget-publish-ref.yml
 
 permissions:
   contents: read
@@ -26,6 +38,9 @@ jobs:
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
+        with:
+          ref: ${{ inputs.release_ref || github.sha }}
+          fetch-depth: 0
       - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73
         with:
           dotnet-version: 11.0.100
@@ -45,6 +60,20 @@ jobs:
         run: dotnet run --file scripts/csharp/verify-libnode.cs
       - name: Upstream issue regressions
         run: dotnet run --file scripts/csharp/verify-upstream-issues.cs
+      - name: Release tooling regression checks
+        run: dotnet run --file scripts/csharp/verify-release.cs
+      - name: Pack and verify the release closure
+        if: ${{ inputs.package_version != '' }}
+        env:
+          PACKAGE_VERSION: ${{ inputs.package_version }}
+        run: dotnet run --file scripts/csharp/publish-nuget.cs -- --package-version "$PACKAGE_VERSION" --skip-push
+      - name: Keep verified release packages
+        if: ${{ inputs.package_version != '' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: libnode-release-packages
+          if-no-files-found: error
+          path: artifacts/release/packages/*
       - name: Keep build and verification evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
@@ -56,6 +85,8 @@ jobs:
             artifacts/packages/
             artifacts/verification/
             artifacts/upstream-issues/
+            artifacts/release-verification/**/results.json
+            artifacts/release-verification/**/??.log
             artifacts/inputs/abi-inventory.json
             artifacts/native-build.log
             native/libnode/source.lock.json
