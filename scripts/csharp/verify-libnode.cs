@@ -10,11 +10,14 @@ var root = Directory.GetCurrentDirectory();
 var windows = OperatingSystem.IsWindows();
 var rid = windows ? "win-x64" : "linux-x64";
 var libraryName = windows ? "libnode.dll" : "libnode.so";
-var prepareOnly = args.SequenceEqual(new[] { "--prepare-upstream" });
-if (args.Length != 0 && !prepareOnly) throw new ArgumentException("Usage: verify-libnode.cs [--prepare-upstream]");
+var prepareOnly = args.Contains("--prepare-upstream", StringComparer.Ordinal);
+var inputsPrepared = args.Contains("--inputs-prepared", StringComparer.Ordinal);
+if (args.Any(argument => argument is not ("--prepare-upstream" or "--inputs-prepared")))
+    throw new ArgumentException("Usage: verify-libnode.cs [--prepare-upstream] [--inputs-prepared]");
 var inputs = Path.Combine(root, "artifacts/inputs");
 var sourceLock = JsonNode.Parse(await File.ReadAllTextAsync(Path.Combine(root, "native/libnode/source.lock.json")))!;
-await Run("dotnet", ["run", "--file", "scripts/csharp/prepare-libnode.cs", "--", "--offline"], root);
+if (!inputsPrepared)
+    await Run("dotnet", ["run", "--file", "scripts/csharp/prepare-libnode.cs", "--", "--offline"], root);
 var revision = sourceLock["nodeApi"]!["commit"]!.GetValue<string>();
 var upstream = Path.Combine(root, "artifacts/sources/node-api-dotnet-" + revision);
 var adaptation = Path.Combine(root, "native/libnode/patches/nodeapi-tests.patch");
@@ -25,7 +28,10 @@ var marker = Path.Combine(upstream, ".jazor-adaptation");
 if (!Directory.Exists(upstream))
 {
     Directory.CreateDirectory(Path.GetDirectoryName(upstream)!);
-    await Run("tar", ["-xzf", Path.Combine(inputs, "node-api-dotnet.tar.gz"), "-C", Path.GetDirectoryName(upstream)!], root);
+    if (windows)
+        await Run("python", ["-c", "import sys,tarfile; tarfile.open(sys.argv[1]).extractall(sys.argv[2],filter='data')", Path.Combine(inputs, "node-api-dotnet.tar.gz"), Path.GetDirectoryName(upstream)!], root);
+    else
+        await Run("tar", ["-xzf", Path.Combine(inputs, "node-api-dotnet.tar.gz"), "-C", Path.GetDirectoryName(upstream)!], root);
 }
 if (!File.Exists(marker))
 {

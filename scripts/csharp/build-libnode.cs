@@ -38,7 +38,11 @@ var marker = Path.Combine(source, ".jazor-source-lock");
 Directory.CreateDirectory(sourceRoot);
 if (!Directory.Exists(source))
 {
-    await Run("tar", ["-xJf", Path.Combine(root, $"artifacts/inputs/node-{tag}.tar.xz"), "-C", sourceRoot], root);
+    var archive = Path.Combine(root, $"artifacts/inputs/node-{tag}.tar.xz");
+    if (OperatingSystem.IsWindows())
+        await Run("python", ["-c", "import sys,tarfile; t=tarfile.open(sys.argv[1]); print('Extracting',len(t.getmembers()),'source entries',flush=True); t.extractall(sys.argv[2],filter='data'); print('Source extraction complete',flush=True)", archive, sourceRoot], root);
+    else
+        await Run("tar", ["-xJf", archive, "-C", sourceRoot], root);
     // Keep git apply rooted in the extracted source, even inside this repository.
     await Run("git", ["init", "--quiet"], source);
     foreach (var patch in manifest["patches"]!.AsArray())
@@ -147,7 +151,7 @@ static async Task<string> Run(string executable, string[] arguments, string dire
         while (await reader.ReadLineAsync() is { } line)
         {
             if (writer is not null) { lock (writer) writer.WriteLine(line); }
-            else text.AppendLine(line);
+            else { text.AppendLine(line); Console.WriteLine(line); }
         }
         return text.ToString();
     }
