@@ -12,7 +12,7 @@ if (rid is not ("win-x64" or "win-arm64")) throw new ArgumentException("Select w
 for (var attempt = 0; attempt < 350; attempt++)
 {
     var metadata = JsonNode.Parse(await Api($"repos/devhxj/Libnode/actions/runs/{runId}"))!;
-    if (metadata["path"]!.GetValue<string>() != ".github/workflows/windows-candidate.yml")
+    if (metadata["path"]!.GetValue<string>() is not (".github/workflows/windows-candidate.yml" or ".github/workflows/arm-candidate.yml"))
         throw new InvalidDataException("Native inputs must come from the Windows candidate workflow.");
     var status = metadata["status"]!.GetValue<string>();
     Console.WriteLine($"Windows candidate {runId}: {status}");
