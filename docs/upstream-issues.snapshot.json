@@ -1,0 +1,602 @@
+{
+  "checkedAt": "2026-11-17",
+  "repository": "microsoft/node-api-dotnet",
+  "openIssueCount": 66,
+  "scope": "Open issues excluding pull requests; issue bodies and available comments reviewed.",
+  "issues": [
+    {
+      "number": 509,
+      "title": "`JSError.ThrowTypeError` / `ThrowRangeError` / `ThrowSyntaxError` throw a plain `Error`",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/509",
+      "updatedAt": "2026-10-21T20:13:42Z",
+      "commentsReviewed": 0,
+      "classification": "Managed — reproduced",
+      "assessment": "String helper calls ThrowError rather than ThrowTypeError; C addon gets a real TypeError from the same native library."
+    },
+    {
+      "number": 505,
+      "title": "JSError.ThrowError(Exception) aborts the process when a Worker terminates during a .NET call",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/505",
+      "updatedAt": "2026-10-13T18:46:43Z",
+      "commentsReviewed": 0,
+      "classification": "Managed/reverse-host — not reproduced",
+      "assessment": "Report concerns JSError during CLR-in-Worker teardown; keeping the unmodified NodeApi package. Pure JS worker termination passes, which does not prove this case."
+    },
+    {
+      "number": 504,
+      "title": "dependency resolution on a non-JS thread fails with 0x80131509 instead of falling back",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/504",
+      "updatedAt": "2026-10-12T12:01:42Z",
+      "commentsReviewed": 0,
+      "classification": "Managed host",
+      "assessment": "Assembly resolution emits JS notifications on a non-JS thread; no native source change indicated."
+    },
+    {
+      "number": 502,
+      "title": "IDisposable: typings say `dispose()`, dynamic binding exposes `Dispose()`",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/502",
+      "updatedAt": "2026-09-30T12:39:43Z",
+      "commentsReviewed": 0,
+      "classification": "Managed generator/exporter",
+      "assessment": "Dispose name mismatch is in typings versus TypeExporter."
+    },
+    {
+      "number": 486,
+      "title": "SIGSEGV (exit 139) on Node worker_threads teardown after require('node-api-dotnet/net10.0') - pthread TLS destructor use-after-free",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/486",
+      "updatedAt": "2026-08-15T17:27:26Z",
+      "commentsReviewed": 1,
+      "classification": "Reverse-host — not reproduced",
+      "assessment": "TLS destructor report loads CLR from a Node Worker. Our existing-CLR embedding direction does not exercise that teardown."
+    },
+    {
+      "number": 484,
+      "title": "C# AOT compilation not setting \"dotnet\" to undefined",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/484",
+      "updatedAt": "2026-10-22T15:07:10Z",
+      "commentsReviewed": 1,
+      "classification": "Managed MSBuild/generator",
+      "assessment": "Generated AOT loader replacement uses the wrong module string."
+    },
+    {
+      "number": 479,
+      "title": "System.Management throws PlatformNotSupportedException under hosted CLR on Windows — breaks Hardware.Info, DeviceId.Windows.Wmi,   etc.",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/479",
+      "updatedAt": "2026-06-08T17:13:07Z",
+      "commentsReviewed": 0,
+      "classification": "Managed/.NET platform",
+      "assessment": "System.Management and assembly load context; Windows-only reproduction unavailable."
+    },
+    {
+      "number": 475,
+      "title": "Is it possible to develop vscode extension based on this",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/475",
+      "updatedAt": "2026-08-15T17:29:59Z",
+      "commentsReviewed": 1,
+      "classification": "Usage request",
+      "assessment": "VS Code extension deployment choices, not a native failure report."
+    },
+    {
+      "number": 474,
+      "title": "Workload manifest dependency 'Microsoft.NET.Workload.Emscripten.Current' version '9.0.4' is lower than version '9.0.10' required by manifest",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/474",
+      "updatedAt": "2026-03-24T14:18:02Z",
+      "commentsReviewed": 0,
+      "classification": "SDK/workload",
+      "assessment": "Emscripten workload manifest mismatch, outside this native build."
+    },
+    {
+      "number": 472,
+      "title": "Add support for the current version of Node",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/472",
+      "updatedAt": "2026-10-05T03:02:42Z",
+      "commentsReviewed": 2,
+      "classification": "Native — covered",
+      "assessment": "All 27 selected managed embedding imports exported; actual Node 26.13.1 NuGet consumer passes. Stock Node binaries still lack this experimental API."
+    },
+    {
+      "number": 470,
+      "title": "Support for DotNet 10.0",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/470",
+      "updatedAt": "2026-08-15T17:34:39Z",
+      "commentsReviewed": 15,
+      "classification": "Managed build/runtime",
+      "assessment": "Comments report .NET 10 support resolved; local .NET 11 embedding passes. HTTP/3 native CLR dependency resolution is separate."
+    },
+    {
+      "number": 466,
+      "title": "Calling ambiguous overloaded methods",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/466",
+      "updatedAt": "2025-12-02T23:51:32Z",
+      "commentsReviewed": 0,
+      "classification": "Managed marshalling/API",
+      "assessment": "Report concerns type conversion, managed API/export shape or a feature request; no native-library root cause demonstrated."
+    },
+    {
+      "number": 464,
+      "title": "Process Crash trying: .NET -> load ESM module -> loading .NET module",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/464",
+      "updatedAt": "2025-10-24T22:20:14Z",
+      "commentsReviewed": 0,
+      "classification": "Managed — reproduced",
+      "assessment": "Both linked binding paths abort in the NodeApi Root/Callback scope adapter. Native linked-module cases pass; do not claim this fixed."
+    },
+    {
+      "number": 461,
+      "title": "Example \"aot-module\" fails with [ERR_MODULE_NOT_FOUND]: Cannot find package 'node-api-dotnet'",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/461",
+      "updatedAt": "2025-10-15T16:54:50Z",
+      "commentsReviewed": 0,
+      "classification": "Managed build/generator",
+      "assessment": "Report concerns generated C#/TypeScript, AOT, SDK, managed build or exported API shape; a native library replacement does not fix it."
+    },
+    {
+      "number": 460,
+      "title": "Supporting SSR scenarios",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/460",
+      "updatedAt": "2025-10-10T16:15:59Z",
+      "commentsReviewed": 0,
+      "classification": "Mixed — partial evidence",
+      "assessment": "ESM/errors/workers pass. Nested CLR loading (#330) and Windows debugging (#440) remain separate unverified cases."
+    },
+    {
+      "number": 459,
+      "title": "Crash when returning a IntPtr when dynamically invoke .NET APIs",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/459",
+      "updatedAt": "2025-10-08T07:31:47Z",
+      "commentsReviewed": 0,
+      "classification": "Managed marshalling/API",
+      "assessment": "Report concerns type conversion, managed API/export shape or a feature request; no native-library root cause demonstrated."
+    },
+    {
+      "number": 458,
+      "title": "C# records are translated to invalid TypeScript types because of the `<Clone>$` member",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/458",
+      "updatedAt": "2025-09-28T19:06:07Z",
+      "commentsReviewed": 0,
+      "classification": "Managed build/generator",
+      "assessment": "Report concerns generated C#/TypeScript, AOT, SDK, managed build or exported API shape; a native library replacement does not fix it."
+    },
+    {
+      "number": 456,
+      "title": "The double[][] in .NET is spitting out bad conversion code.",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/456",
+      "updatedAt": "2025-10-23T22:37:45Z",
+      "commentsReviewed": 1,
+      "classification": "Managed build/generator",
+      "assessment": "Report concerns generated C#/TypeScript, AOT, SDK, managed build or exported API shape; a native library replacement does not fix it."
+    },
+    {
+      "number": 455,
+      "title": "TypeScript definition for ValueType not found",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/455",
+      "updatedAt": "2025-08-06T07:40:13Z",
+      "commentsReviewed": 0,
+      "classification": "Managed build/generator",
+      "assessment": "Report concerns generated C#/TypeScript, AOT, SDK, managed build or exported API shape; a native library replacement does not fix it."
+    },
+    {
+      "number": 450,
+      "title": "Trying to run NodeWorkers from an ASP.NET Core application",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/450",
+      "updatedAt": "2025-07-17T00:07:11Z",
+      "commentsReviewed": 0,
+      "classification": "Host/platform — partial evidence",
+      "assessment": "Worker lifecycle passes on Linux .NET 11; exact ASP.NET/Windows closed-stream case not reproduced."
+    },
+    {
+      "number": 449,
+      "title": "semantic-kernel from v1.18.0 upper cannot build",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/449",
+      "updatedAt": "2025-07-03T09:31:50Z",
+      "commentsReviewed": 0,
+      "classification": "Managed build/generator",
+      "assessment": "Report concerns generated C#/TypeScript, AOT, SDK, managed build or exported API shape; a native library replacement does not fix it."
+    },
+    {
+      "number": 444,
+      "title": "JSValue returned by Import() don't survive dependency injection",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/444",
+      "updatedAt": "2025-04-17T14:38:41Z",
+      "commentsReviewed": 0,
+      "classification": "Usage/lifetime — not reproduced",
+      "assessment": "Strong JSReference survives separate JS callbacks in the same runtime; keep values on their owning JS thread."
+    },
+    {
+      "number": 443,
+      "title": "Refactor embedding API and code to separate assembly",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/443",
+      "updatedAt": "2025-04-04T21:35:44Z",
+      "commentsReviewed": 0,
+      "classification": "API organization proposal",
+      "assessment": "Moving embedding types to a managed assembly does not change the native package."
+    },
+    {
+      "number": 440,
+      "title": "jsdom blows up on net 9 but works on net 8",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/440",
+      "updatedAt": "2026-01-22T07:27:54Z",
+      "commentsReviewed": 3,
+      "classification": "Windows CET/managed teardown — unverified",
+      "assessment": "Linux startup/disposal passes, but Windows debugging and CET need a Windows runner. Keep CETCompat=false."
+    },
+    {
+      "number": 439,
+      "title": "Documentation is wrong and examples don't build",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/439",
+      "updatedAt": "2025-11-17T19:34:18Z",
+      "commentsReviewed": 2,
+      "classification": "Documentation",
+      "assessment": "Our consumer uses NodeEmbeddingPlatformSettings.LibNodePath and builds against the selected actual NuGet API."
+    },
+    {
+      "number": 433,
+      "title": "Streams are broken in electron",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/433",
+      "updatedAt": "2025-03-14T21:24:39Z",
+      "commentsReviewed": 0,
+      "classification": "Managed marshalling/API",
+      "assessment": "Report concerns type conversion, managed API/export shape or a feature request; no native-library root cause demonstrated."
+    },
+    {
+      "number": 432,
+      "title": "Non-writeable MemoryStream shows up as Duplex rather than Readable",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/432",
+      "updatedAt": "2025-03-14T21:27:25Z",
+      "commentsReviewed": 0,
+      "classification": "Managed marshalling/API",
+      "assessment": "Report concerns type conversion, managed API/export shape or a feature request; no native-library root cause demonstrated."
+    },
+    {
+      "number": 430,
+      "title": "Generated entry JS file for AOT thinks I'm not using AOT",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/430",
+      "updatedAt": "2025-09-10T06:20:44Z",
+      "commentsReviewed": 1,
+      "classification": "Managed build/generator",
+      "assessment": "Report concerns generated C#/TypeScript, AOT, SDK, managed build or exported API shape; a native library replacement does not fix it."
+    },
+    {
+      "number": 427,
+      "title": "Multiple NodeJsEnvironments",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/427",
+      "updatedAt": "2025-03-14T21:38:21Z",
+      "commentsReviewed": 6,
+      "classification": "Mixed — partial evidence",
+      "assessment": "Two concurrent managed runtimes and awaited callbacks pass on Linux, both defaults and inspector-disabled settings. Stream/report application not reproduced."
+    },
+    {
+      "number": 426,
+      "title": "panic trying to load Vite.createServer()",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/426",
+      "updatedAt": "2025-03-14T21:43:11Z",
+      "commentsReviewed": 2,
+      "classification": "Native — Linux fix verified",
+      "assessment": "RTLD_GLOBAL promotion fixes unresolved napi_* in a C addon; Rolldown 1.3.2 napi-rs minify also passes. Original Windows executable-export lookup remains unverified."
+    },
+    {
+      "number": 420,
+      "title": "Error related to global.node_api_dotnet.require when trying to use streams",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/420",
+      "updatedAt": "2025-03-14T21:49:11Z",
+      "commentsReviewed": 1,
+      "classification": "Managed initialization/usage",
+      "assessment": "Module imports need createRequire/base directory; the actual NuGet consumer configures these explicitly. No native patch to managed globals."
+    },
+    {
+      "number": 414,
+      "title": "How do I export a C# function with a `JSValue` argument?",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/414",
+      "updatedAt": "2025-01-10T22:37:03Z",
+      "commentsReviewed": 1,
+      "classification": "Managed marshalling/API",
+      "assessment": "Report concerns type conversion, managed API/export shape or a feature request; no native-library root cause demonstrated."
+    },
+    {
+      "number": 412,
+      "title": "Does Memory<T> type work for dynamic JS->.NET invocation?",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/412",
+      "updatedAt": "2025-01-13T06:08:25Z",
+      "commentsReviewed": 2,
+      "classification": "Managed marshalling/API",
+      "assessment": "Report concerns type conversion, managed API/export shape or a feature request; no native-library root cause demonstrated."
+    },
+    {
+      "number": 411,
+      "title": "AOT Build failing at following command dotnet publish",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/411",
+      "updatedAt": "2025-11-18T08:38:14Z",
+      "commentsReviewed": 3,
+      "classification": "Managed build/generator",
+      "assessment": "Report concerns generated C#/TypeScript, AOT, SDK, managed build or exported API shape; a native library replacement does not fix it."
+    },
+    {
+      "number": 409,
+      "title": "Version upgrade 0.7.6-> 0.7.7 breaks `dotnet build`",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/409",
+      "updatedAt": "2025-07-02T03:49:32Z",
+      "commentsReviewed": 1,
+      "classification": "Managed build/generator",
+      "assessment": "Report concerns generated C#/TypeScript, AOT, SDK, managed build or exported API shape; a native library replacement does not fix it."
+    },
+    {
+      "number": 408,
+      "title": "Feature Request: Option to Generate TypeScript as export interface or export type",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/408",
+      "updatedAt": "2025-01-11T04:54:12Z",
+      "commentsReviewed": 2,
+      "classification": "Managed build/generator",
+      "assessment": "Report concerns generated C#/TypeScript, AOT, SDK, managed build or exported API shape; a native library replacement does not fix it."
+    },
+    {
+      "number": 407,
+      "title": "while building node-api-dotnet project using electron-builder using for process architecture ia32 receiving error.",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/407",
+      "updatedAt": "2025-01-10T23:01:38Z",
+      "commentsReviewed": 1,
+      "classification": "Managed build/generator",
+      "assessment": "Report concerns generated C#/TypeScript, AOT, SDK, managed build or exported API shape; a native library replacement does not fix it."
+    },
+    {
+      "number": 406,
+      "title": "`node-api-dotnet-generator` v0.8.19 misses net8.0 artifacts",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/406",
+      "updatedAt": "2025-01-10T23:01:30Z",
+      "commentsReviewed": 1,
+      "classification": "Managed build/generator",
+      "assessment": "Report concerns generated C#/TypeScript, AOT, SDK, managed build or exported API shape; a native library replacement does not fix it."
+    },
+    {
+      "number": 399,
+      "title": "Provide a way to eagerly marshal (snapshot) all properties to js object.",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/399",
+      "updatedAt": "2025-01-17T22:42:55Z",
+      "commentsReviewed": 3,
+      "classification": "Managed marshalling/API",
+      "assessment": "Report concerns type conversion, managed API/export shape or a feature request; no native-library root cause demonstrated."
+    },
+    {
+      "number": 398,
+      "title": "Unable to resolve native runtime dlls",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/398",
+      "updatedAt": "2024-11-10T11:31:30Z",
+      "commentsReviewed": 0,
+      "classification": "Managed host/dependency resolution",
+      "assessment": "EFCore/e_sqlite3 and IntPtr marshalling concern CLR loading/export, not libnode native asset selection."
+    },
+    {
+      "number": 397,
+      "title": "A possible vite plugin to make this work with electron.",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/397",
+      "updatedAt": "2024-11-10T11:35:35Z",
+      "commentsReviewed": 1,
+      "classification": "Electron/Vite bundling",
+      "assessment": "Community integration example; path rewriting of CLR-host package is outside native library implementation."
+    },
+    {
+      "number": 393,
+      "title": "Embedded njs calling back into C#",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/393",
+      "updatedAt": "2024-10-19T00:33:39Z",
+      "commentsReviewed": 0,
+      "classification": "Managed host/usage",
+      "assessment": "Two-way callbacks pass upstream tests; importing the reverse-host npm package inside existing CLR is #330, not promised here."
+    },
+    {
+      "number": 391,
+      "title": "Compile error 'CS8078' when a single class has many export properties",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/391",
+      "updatedAt": "2024-10-15T06:57:14Z",
+      "commentsReviewed": 1,
+      "classification": "Managed build/generator",
+      "assessment": "Report concerns generated C#/TypeScript, AOT, SDK, managed build or exported API shape; a native library replacement does not fix it."
+    },
+    {
+      "number": 386,
+      "title": "Report the full .NET exception stack trace in fatal errors",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/386",
+      "updatedAt": "2024-10-17T17:44:01Z",
+      "commentsReviewed": 3,
+      "classification": "Managed exception policy",
+      "assessment": "JSThreadSafeFunction diagnostic text/async-void handling belongs to the managed package."
+    },
+    {
+      "number": 383,
+      "title": "`Memory<T>` to `TypedArray<T>` on Electron 19.1.9 Worked fine. But did not worked on higher Electron",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/383",
+      "updatedAt": "2025-03-17T12:34:52Z",
+      "commentsReviewed": 7,
+      "classification": "Electron platform policy",
+      "assessment": "Electron prohibits external buffers. This package builds Node, not Electron; no change to Electron memory policy."
+    },
+    {
+      "number": 381,
+      "title": "How to accomplish two way communication between .NET and JS?",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/381",
+      "updatedAt": "2025-10-04T17:03:56Z",
+      "commentsReviewed": 2,
+      "classification": "Managed host/usage",
+      "assessment": "Callback creation is supported; nested npm CLR loader is #330. Do not infer reverse-host support."
+    },
+    {
+      "number": 366,
+      "title": "How to make this work in powershell?",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/366",
+      "updatedAt": "2024-09-16T21:32:23Z",
+      "commentsReviewed": 2,
+      "classification": "PowerShell/thread affinity",
+      "assessment": "Comments identify missing runspace on dedicated JS thread. Native caller-thread API exists; no PowerShell integration tested."
+    },
+    {
+      "number": 355,
+      "title": "NodejsEnvironment Dispose() is blocked by pending tasks",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/355",
+      "updatedAt": "2024-08-14T17:15:24Z",
+      "commentsReviewed": 1,
+      "classification": "Managed — reproduced",
+      "assessment": "ThreadRuntime.Dispose waits for live interval. Clear interval or use explicit Runtime.TerminateEventLoop on JS thread; both controls pass."
+    },
+    {
+      "number": 348,
+      "title": "Cannot create multiple NodeJSEnvironment for one NodeJSPlatform",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/348",
+      "updatedAt": "2024-09-25T07:05:58Z",
+      "commentsReviewed": 9,
+      "classification": "Native/inspector — not reproduced on Linux",
+      "assessment": "Two concurrent managed runtimes pass, including default flags; reused C tests exercise 12 environments. Preserve inspector-disabled settings for portable hosts."
+    },
+    {
+      "number": 332,
+      "title": "Path to Microsoft.JavaScript.NodeApi.DotNetHost.dll in electron binary is incorrect",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/332",
+      "updatedAt": "2026-01-18T02:26:25Z",
+      "commentsReviewed": 5,
+      "classification": "Electron packaging",
+      "assessment": "ASAR path resolution belongs to npm/managed host packaging."
+    },
+    {
+      "number": 330,
+      "title": "Importing `node-api-dotnet` into node into a dotnet app",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/330",
+      "updatedAt": "2024-08-18T19:24:38Z",
+      "commentsReviewed": 6,
+      "classification": "Managed reverse host — unverified",
+      "assessment": "NativeHost discovers symbols from main executable and may reinitialize CLR. Requires managed host integration; RTLD_GLOBAL alone is not a demonstrated fix."
+    },
+    {
+      "number": 316,
+      "title": "Support C# `decimal` type",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/316",
+      "updatedAt": "2024-07-12T21:22:24Z",
+      "commentsReviewed": 1,
+      "classification": "Managed marshalling/API",
+      "assessment": "Report concerns type conversion, managed API/export shape or a feature request; no native-library root cause demonstrated."
+    },
+    {
+      "number": 307,
+      "title": "Support marshalling C# `dynamic` values",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/307",
+      "updatedAt": "2024-07-12T21:26:23Z",
+      "commentsReviewed": 5,
+      "classification": "Managed marshalling/API",
+      "assessment": "Report concerns type conversion, managed API/export shape or a feature request; no native-library root cause demonstrated."
+    },
+    {
+      "number": 298,
+      "title": "Report warning for exported generic types or methods",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/298",
+      "updatedAt": "2024-08-01T17:10:18Z",
+      "commentsReviewed": 1,
+      "classification": "Managed build/generator",
+      "assessment": "Report concerns generated C#/TypeScript, AOT, SDK, managed build or exported API shape; a native library replacement does not fix it."
+    },
+    {
+      "number": 289,
+      "title": "Support exporting generic types and methods to JS from a .NET module",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/289",
+      "updatedAt": "2024-05-17T21:54:43Z",
+      "commentsReviewed": 3,
+      "classification": "Managed build/generator",
+      "assessment": "Report concerns generated C#/TypeScript, AOT, SDK, managed build or exported API shape; a native library replacement does not fix it."
+    },
+    {
+      "number": 262,
+      "title": "Add full support for types/interfaces/delegates without namespaces",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/262",
+      "updatedAt": "2024-08-19T03:36:29Z",
+      "commentsReviewed": 2,
+      "classification": "Managed marshalling/API",
+      "assessment": "Report concerns type conversion, managed API/export shape or a feature request; no native-library root cause demonstrated."
+    },
+    {
+      "number": 243,
+      "title": "Marshalling: Non-generic collections",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/243",
+      "updatedAt": "2024-08-01T22:45:09Z",
+      "commentsReviewed": 1,
+      "classification": "Managed marshalling/API",
+      "assessment": "Report concerns type conversion, managed API/export shape or a feature request; no native-library root cause demonstrated."
+    },
+    {
+      "number": 213,
+      "title": "Unable to find an entry point named \"napi_create_platform\" in DLL",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/213",
+      "updatedAt": "2025-02-07T20:47:58Z",
+      "commentsReviewed": 7,
+      "classification": "ABI/package selection — covered",
+      "assessment": "Old napi_create_platform ABI is retired; selected 0.9.36 node_embedding_* imports and actual NuGet startup pass."
+    },
+    {
+      "number": 205,
+      "title": "Marshalling: Exception subclasses",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/205",
+      "updatedAt": "2024-05-17T22:00:13Z",
+      "commentsReviewed": 5,
+      "classification": "Managed marshalling/API",
+      "assessment": "Report concerns type conversion, managed API/export shape or a feature request; no native-library root cause demonstrated."
+    },
+    {
+      "number": 164,
+      "title": "Web Assembly Support",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/164",
+      "updatedAt": "2026-03-18T15:29:38Z",
+      "commentsReviewed": 2,
+      "classification": "Feature request",
+      "assessment": "Browser/.NET WebAssembly interop outside the native shared Node package."
+    },
+    {
+      "number": 107,
+      "title": "Build libnode and publish nuget packages",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/107",
+      "updatedAt": "2024-08-09T17:24:21Z",
+      "commentsReviewed": 11,
+      "classification": "Native delivery — partial",
+      "assessment": "Linux candidate and runtime asset packing pass. Windows/macOS builds, target-RID migration and official publication remain pending."
+    },
+    {
+      "number": 90,
+      "title": "JSImportAttribute for easier invocation of JS APIs from C#",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/90",
+      "updatedAt": "2024-05-17T22:16:13Z",
+      "commentsReviewed": 0,
+      "classification": "Managed marshalling/API",
+      "assessment": "Report concerns type conversion, managed API/export shape or a feature request; no native-library root cause demonstrated."
+    },
+    {
+      "number": 80,
+      "title": "Publish nuget & npm packages to ADO",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/80",
+      "updatedAt": "2025-08-09T20:31:29Z",
+      "commentsReviewed": 5,
+      "classification": "Release infrastructure",
+      "assessment": "Upstream ADO signing/npm release backlog; candidate CI exists; official publication is not configured in this repository."
+    },
+    {
+      "number": 64,
+      "title": "Custom marshalling",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/64",
+      "updatedAt": "2024-05-17T22:16:55Z",
+      "commentsReviewed": 0,
+      "classification": "Managed marshalling/API",
+      "assessment": "Report concerns type conversion, managed API/export shape or a feature request; no native-library root cause demonstrated."
+    },
+    {
+      "number": 63,
+      "title": "Marshalling: Fields",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/63",
+      "updatedAt": "2024-05-17T22:17:02Z",
+      "commentsReviewed": 0,
+      "classification": "Managed marshalling/API",
+      "assessment": "Report concerns type conversion, managed API/export shape or a feature request; no native-library root cause demonstrated."
+    },
+    {
+      "number": 59,
+      "title": "Marshalling: Events",
+      "url": "https://github.com/microsoft/node-api-dotnet/issues/59",
+      "updatedAt": "2026-03-28T13:41:19Z",
+      "commentsReviewed": 2,
+      "classification": "Managed marshalling/API",
+      "assessment": "Report concerns type conversion, managed API/export shape or a feature request; no native-library root cause demonstrated."
+    }
+  ]
+}

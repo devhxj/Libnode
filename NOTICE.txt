@@ -1,4 +1,4 @@
-Jazor.LibNode contains Jazor-owned build and packaging code under LICENSE.txt.
+Libnode build and packaging code is licensed under LICENSE.txt.
 
 Native Node.js builds include third-party software. Each native package must
 include the full LICENSE file from the pinned Node source as NODE-LICENSE; that

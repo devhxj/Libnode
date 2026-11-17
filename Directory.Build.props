@@ -8,7 +8,7 @@
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <Authors>Jazor contributors</Authors>
+    <Authors>developerhan</Authors>
     <RepositoryUrl>https://github.com/devhxj/Libnode</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/devhxj/Libnode</PackageProjectUrl>
@@ -20,8 +20,8 @@
     <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
   <Target Name="RequireReleaseVersion" BeforeTargets="Pack;GenerateNuspec">
-    <!-- The parent Jazor release supplies the lockstep tag version. -->
-    <Error Condition="'$(JazorReleaseVersion)' == ''" Text="Pass -p:JazorReleaseVersion with the version selected by Jazor's release tag." />
+    <!-- Release automation supplies the package version. -->
+    <Error Condition="'$(JazorReleaseVersion)' == ''" Text="Pass -p:JazorReleaseVersion with the selected package release version." />
   </Target>
   <PropertyGroup Condition="'$(JazorReleaseVersion)' != ''">
     <PackageVersion>$(JazorReleaseVersion)</PackageVersion>

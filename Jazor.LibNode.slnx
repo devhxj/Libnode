@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="src/Jazor.LibNode/Jazor.LibNode.csproj" />
   <Project Path="src/Jazor.LibNode.Runtime/Jazor.LibNode.Runtime.csproj" />
+  <Project Path="tests/UpstreamIssues/UpstreamIssues.csproj" />
 </Solution>

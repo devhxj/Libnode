@@ -3,7 +3,7 @@
   <metadata>
     <id>Jazor.LibNode</id>
     <version>$version$</version>
-    <authors>Jazor contributors</authors>
+    <authors>developerhan</authors>
     <projectUrl>https://github.com/devhxj/Libnode</projectUrl>
     <repository type="git" url="https://github.com/devhxj/Libnode" />
     <description>Node.js LTS native embedding runtime for Microsoft.JavaScript.NodeApi.</description>

@@ -44,3 +44,11 @@ test SDK 18.12.0 correctly discover the 22 embedding/GC cases.
 The original Microsoft native packaging recipe remains unconfirmed. This project
 owns explicit NuGet packaging around the upstream Node build; it does not claim
 to reproduce Microsoft's old native binary or its undocumented build inputs.
+
+`0002-linux-addon-symbols.patch` fixes a reproduced Linux addon failure related
+to Microsoft issue #426. .NET's local loader scope hid `napi_*` from a conventional
+Node-API addon. Platform initialization promotes the exact loaded library with
+`RTLD_NOLOAD | RTLD_GLOBAL`; platform teardown releases its extra loader handle.
+Both a C addon and a pinned Rolldown napi-rs addon execute successfully after the
+patch, without `LD_PRELOAD` or host-side P/Invoke workarounds. This verifies Linux
+behavior; it does not claim to fix #426's Windows executable-export lookup.

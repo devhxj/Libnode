@@ -1,0 +1,55 @@
+--- a/src/node_embedding_api.cc
++++ b/src/node_embedding_api.cc
+@@ -17,6 +17,7 @@
+ #if defined(__APPLE__)
+ #include <sys/select.h>
+ #elif defined(__linux)
++#include <dlfcn.h>
+ #include <sys/epoll.h>
+ #endif
+ 
+@@ -245,6 +246,9 @@
+   bool v8_is_initialized_{false};
+   bool v8_is_uninitialized_{false};
+   NodePlatformFlags flags_;
++#if defined(__linux)
++  void* addon_library_handle_{nullptr};
++#endif
+   std::vector<std::string> args_;
+   struct {
+     bool flags : 1;
+@@ -638,6 +642,9 @@
+     v8::V8::DisposePlatform();
+     node::TearDownOncePerProcess();
+   }
++#if defined(__linux)
++  if (addon_library_handle_ != nullptr) dlclose(addon_library_handle_);
++#endif
+ 
+   delete this;
+   return NodeStatus::kOk;
+@@ -668,6 +675,24 @@
+   if (configure_platform != nullptr) {
+     CHECK_STATUS(configure_platform(configure_platform_data, platform_config));
+   }
++
++#if defined(__linux)
++  // .NET loads native assets with RTLD_LOCAL. Linux addons leave napi_* imports
++  // unresolved and expect Node to provide them globally. Promote this exact
++  // loaded instance; RTLD_NOLOAD prevents selecting a second libnode by name.
++  Dl_info library_info{};
++  if (dladdr(reinterpret_cast<void*>(&node_embedding_platform_create),
++             &library_info) == 0) {
++    return EmbeddedErrorHandling::HandleError(
++        NodeStatus::kGenericError, "Cannot locate libnode for addon symbols");
++  }
++  addon_library_handle_ = dlopen(
++      library_info.dli_fname, RTLD_NOW | RTLD_NOLOAD | RTLD_GLOBAL);
++  if (addon_library_handle_ == nullptr) {
++    return EmbeddedErrorHandling::HandleError(NodeStatus::kGenericError,
++                                               dlerror());
++  }
++#endif
+ 
+   is_initialized_ = true;
+ 

@@ -81,6 +81,10 @@
     {
       "path": "native/libnode/patches/0001-node26-embedding.patch",
       "sha256": "58ccf3879a6302c3ebfcc5ba3f4fa315243a28bf7d8019eb07eaecac46b43845"
+    },
+    {
+      "path": "native/libnode/patches/0002-linux-addon-symbols.patch",
+      "sha256": "722c01693b6839cefeff3b71facbe82d2a0f35904c79f26fb06408b2768c8639"
     }
   ]
 }

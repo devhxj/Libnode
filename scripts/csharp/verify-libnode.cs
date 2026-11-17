@@ -86,7 +86,7 @@ var assets = JsonNode.Parse(await File.ReadAllTextAsync(Path.Combine(upstream, "
 if (assets["libraries"]!.AsObject().Any(pair => pair.Key.StartsWith("Microsoft.JavaScript.LibNode", StringComparison.OrdinalIgnoreCase)))
     throw new InvalidDataException("Upstream test graph still contains Microsoft's native package.");
 
-// A local, unpublished candidate version; official packages use Jazor's tag.
+// A local, unpublished candidate version; official packages use the release version.
 var version = "0.0.0-local." + hash[..12];
 var packages = Path.Combine(root, "artifacts/packages");
 await Run("dotnet", ["pack", "src/Jazor.LibNode.Runtime", "-p:LibNodeRid=linux-x64", "-p:JazorReleaseVersion=" + version, "-o", packages], root, "runtime-pack.log");

@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <CETCompat>false</CETCompat>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.JavaScript.NodeApi" Version="$(NodeApiVersion)" />
+  </ItemGroup>
+</Project>

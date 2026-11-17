@@ -22,6 +22,10 @@ Port adaptations for Node 26:
   body, rather than replacing it with the old Node 20 example.
 - Restore the fork's exact `test/fixtures/snapshot/create-worker-and-vm.js`, which
   its snapshot assertions require and the Node 26 source archive does not contain.
+- On Linux, promote the exact loaded shared library to `RTLD_GLOBAL` during
+  platform initialization so Node-API addons can resolve `napi_*`. `RTLD_NOLOAD`
+  prevents loading another library; the platform retains the extra loader handle
+  until teardown. See [the upstream issue audit](../../docs/upstream-issue-audit.md).
 
 The patch is an implementation candidate. Enum values, callback signatures,
 ownership and binary behavior must still be verified through the original tests
@@ -37,5 +41,4 @@ and actual managed NuGet package. The embedding API remains experimental upstrea
 | win-x86 | Not in Node 26's supported-platform table; explicit migration decision needed |
 | musl / others | Outside the initial acceptance scope |
 
-No existing Jazor production dependency is switched by this project. Do not claim
-that seven old native asset directories constitute seven validated platforms.
+Seven old native asset directories do not constitute seven validated platforms.
