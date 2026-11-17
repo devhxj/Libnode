@@ -2,6 +2,26 @@
 
 ## 2026-11-17
 
+### 未发布 | Unreleased
+
+中文 | English
+
+#### 新增功能
+
+- 增加 Linux ARM64 和 Windows ARM64 的原生构建、架构检查及独立运行验证流程；通过后纳入 0.2.0 发布。by @devhxj
+
+#### 其他变更
+
+- 支持 ARM64 构建产物复用，并记录 32 位 Linux 和 Windows 的上游及 .NET 平台限制。by @devhxj
+
+New Features
+
+- Add native Linux ARM64 and Windows ARM64 builds, binary architecture checks and native runner verification for inclusion in 0.2.0 after acceptance. by @devhxj
+
+Chores
+
+- Reuse ARM64 native build outputs and document upstream and .NET constraints for 32-bit Linux and Windows. by @devhxj
+
 ### Libnode 0.1.0
 
 中文 | English
