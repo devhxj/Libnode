@@ -6,8 +6,8 @@ using Microsoft.JavaScript.NodeApi;
 using Microsoft.JavaScript.NodeApi.Runtime;
 
 if (args.Length != 2) throw new ArgumentException("Usage: NuGetConsumer <expected-library-sha256> <identity-report.json>");
-// Resolve through the same NuGet/runtime resolver used by NodeApi, then pass its
-// exact path to the platform. Never let a machine-wide library satisfy this probe.
+// Resolve through NodeApi's NuGet/runtime resolver and check the exact loaded
+// binary. The platform then uses its normal default resolution path.
 var handle = NativeLibrary.Load("libnode", typeof(NodeEmbeddingPlatform).Assembly, null);
 var mapping = OperatingSystem.IsWindows()
     ? Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Single(module => string.Equals(module.ModuleName, "libnode.dll", StringComparison.OrdinalIgnoreCase)).FileName
@@ -19,7 +19,7 @@ await using var input = File.OpenRead(libraryPath);
 var hash = Convert.ToHexStringLower(await SHA256.HashDataAsync(input));
 if (hash != args[0]) throw new InvalidOperationException($"Unexpected loaded library: {libraryPath} ({hash})");
 
-using var platform = new NodeEmbeddingPlatform(new NodeEmbeddingPlatformSettings { LibNodePath = libraryPath });
+using var platform = new NodeEmbeddingPlatform(new NodeEmbeddingPlatformSettings());
 string? runtimeIdentity = null;
 for (var iteration = 0; iteration < 2; iteration++)
 {

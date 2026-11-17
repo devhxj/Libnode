@@ -27,16 +27,22 @@ remain future candidates. No official NuGet package has been published._
 
 ### Minimal example — .NET calling JavaScript
 
-Reference `Microsoft.JavaScript.NodeApi` 0.9.36 and use the compiled native library:
+Reference `Microsoft.JavaScript.NodeApi` 0.9.36 and `Jazor.LibNode` 0.1.0. The latter
+provides the native runtime, serving the same role as `Microsoft.JavaScript.LibNode`.
+Reference one native runtime package in the application.
+
+```sh
+dotnet add package Microsoft.JavaScript.NodeApi --version 0.9.36
+dotnet add package Jazor.LibNode --version 0.1.0
+```
+
+NodeApi resolves the appropriate native library from the package automatically:
 
 ```csharp
 using Microsoft.JavaScript.NodeApi;
 using Microsoft.JavaScript.NodeApi.Runtime;
 
-using var platform = new NodeEmbeddingPlatform(new NodeEmbeddingPlatformSettings
-{
-    LibNodePath = Path.GetFullPath("libnode.so") // Linux; use the native library for your platform.
-});
+using var platform = new NodeEmbeddingPlatform(new NodeEmbeddingPlatformSettings());
 using var runtime = platform.CreateThreadRuntime();
 runtime.Run(() =>
 {
