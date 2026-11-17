@@ -63,8 +63,8 @@ jobs:
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: artifacts/sources/node-*/
-          key: windows-native-${{ steps.build-cache.outputs.image }}-${{ hashFiles('native/libnode/source.lock.json', 'scripts/csharp/build-windows-libnode.cs') }}-${{ github.run_id }}
-          restore-keys: windows-native-${{ steps.build-cache.outputs.image }}-${{ hashFiles('native/libnode/source.lock.json', 'scripts/csharp/build-windows-libnode.cs') }}-
+          key: windows-native-${{ steps.build-cache.outputs.image }}-${{ hashFiles('native/libnode/source.lock.json') }}-${{ github.run_id }}
+          restore-keys: windows-native-${{ steps.build-cache.outputs.image }}-${{ hashFiles('native/libnode/source.lock.json') }}-
       - name: Prepare native source without compiling V8
         timeout-minutes: 15
         run: dotnet run --file scripts/csharp/build-libnode.cs -- --prepare-only --inputs-prepared

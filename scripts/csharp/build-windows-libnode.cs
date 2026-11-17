@@ -51,6 +51,9 @@ var rustc = await Run("rustc", ["--version"], source, environment);
 var cargo = await Run("cargo", ["--version"], source, environment);
 var python = await Run("python", ["--version"], source, environment);
 var sourceCommit = (await Run("git", ["rev-parse", "HEAD"], root)).Trim();
+// Rust 1.100's Windows futex implementation imports these synchronization
+// APIs. lld-link and link.exe both honor the appended _LINK_ options.
+environment["_LINK_"] = environment.GetValueOrDefault("_LINK_", "") + " Synchronization.lib";
 // Default configuration is Release. Omitting the 'release' switch avoids
 // enabling optional LTCG. Build only the shared library and embedding harness.
 environment["msbuild_args"] = "/t:embedtest";
@@ -81,6 +84,7 @@ var record = new
     sourceLockSha256 = await Hash(lockPath), windowsHarnessPatchSha256 = patchHash, sourceCommit,
     node = manifest["node"], nodeApi = manifest["nodeApi"], embedding = manifest["embedding"], patches = manifest["patches"],
     rid = "win-x64", compiler = compilerVersion, rustc, cargo, python, configureArgs = buildArgs,
+    additionalLinkLibraries = new[] { "Synchronization.lib" },
     buildHost = RuntimeInformation.OSDescription, librarySha256 = await Hash(library),
     dependencies, nativeCompatibilityVerified = false
 };
