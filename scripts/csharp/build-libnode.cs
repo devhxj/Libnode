@@ -11,6 +11,7 @@ var root = Directory.GetCurrentDirectory();
 var jobs = Math.Min(Environment.ProcessorCount, 8);
 var prepareOnly = false;
 var inputsPrepared = false;
+var importCachedBuild = false;
 var toolchain = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local/opt/jazor-toolchain/usr/bin");
 for (var index = 0; index < args.Length; index++)
 {
@@ -20,6 +21,7 @@ for (var index = 0; index < args.Length; index++)
         case "--toolchain": toolchain = Path.GetFullPath(args[++index]); break;
         case "--prepare-only": prepareOnly = true; break;
         case "--inputs-prepared": inputsPrepared = true; break;
+        case "--import-cached-build": importCachedBuild = true; break;
         default: throw new ArgumentException($"Unknown argument: {args[index]}");
     }
 }
@@ -62,6 +64,30 @@ if (!Directory.Exists(source))
 if (!File.Exists(marker) || (await File.ReadAllTextAsync(marker)).Trim() != lockHash)
     throw new InvalidOperationException($"Source inputs changed or preparation was interrupted. Move {source} aside and rerun to prepare a fresh source tree.");
 if (prepareOnly) return;
+if (importCachedBuild)
+{
+    // Use the original run's artifact metadata together with its exact out/
+    // cache. This also bootstraps reusable ZIPs for the first ARM candidate run.
+    var staged = Path.Combine(root, "artifacts/native", rid);
+    var cachedRelease = Path.Combine(source, "out/Release");
+    var recordPath = Path.Combine(staged, "native-build.json");
+    var cachedRecord = JsonNode.Parse(await File.ReadAllTextAsync(recordPath))!;
+    var cachedLibrary = Directory.GetFiles(cachedRelease, "libnode.so.*").Single();
+    await using var cachedInput = File.OpenRead(cachedLibrary);
+    var cachedHash = Convert.ToHexStringLower(await SHA256.HashDataAsync(cachedInput));
+    await using var stagedInput = File.OpenRead(Path.Combine(staged, "libnode.so"));
+    if (cachedRecord["rid"]!.GetValue<string>() != rid || cachedRecord["sourceLockSha256"]!.GetValue<string>() != lockHash ||
+        cachedRecord["librarySha256"]!.GetValue<string>() != cachedHash ||
+        Convert.ToHexStringLower(await SHA256.HashDataAsync(stagedInput)) != cachedHash ||
+        !File.Exists(Path.Combine(cachedRelease, "embedtest")))
+        throw new InvalidDataException("Cached library/harness and candidate artifact do not match this host and source lock.");
+    cachedRecord["previousVerification"] = cachedRecord["verification"]?.DeepClone();
+    cachedRecord.AsObject().Remove("verification");
+    cachedRecord["nativeCompatibilityVerified"] = false;
+    await File.WriteAllTextAsync(recordPath, cachedRecord.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
+    Console.WriteLine("Imported matching cached native build. Fresh verification is required; no compiler invoked.");
+    return;
+}
 
 var environment = new Dictionary<string, string>();
 foreach (var name in new[] { "CC", "CXX" })
