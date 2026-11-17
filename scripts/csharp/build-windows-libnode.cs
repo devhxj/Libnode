@@ -16,6 +16,8 @@ if (!args.Contains("--source-prepared", StringComparer.Ordinal))
 var lockPath = Path.Combine(root, "native/libnode/source.lock.json");
 var manifest = JsonNode.Parse(await File.ReadAllTextAsync(lockPath))!;
 var source = Path.Combine(root, "artifacts/sources/node-" + manifest["node"]!["tag"]!.GetValue<string>());
+if ((await File.ReadAllTextAsync(Path.Combine(source, ".jazor-source-lock"))).Trim() != await Hash(lockPath))
+    throw new InvalidDataException("Prepared Windows source differs from source.lock.json.");
 var patch = Path.Combine(root, "native/libnode/patches/windows-shared-harness.patch");
 var patchHash = await Hash(patch);
 if (manifest["windowsPatches"]![0]!["path"]!.GetValue<string>() != "native/libnode/patches/windows-shared-harness.patch" ||

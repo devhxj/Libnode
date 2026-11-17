@@ -28,6 +28,13 @@ if ((!OperatingSystem.IsLinux() && !(prepareOnly && OperatingSystem.IsWindows())
     throw new PlatformNotSupportedException("The initial build recipe supports linux-x64 only. Other candidate RIDs require their own build and runtime evidence.");
 if (!inputsPrepared)
     await Run("dotnet", ["run", "--file", "scripts/csharp/prepare-libnode.cs", "--", "--download-node"], root);
+else
+{
+    var preparedInventory = JsonNode.Parse(await File.ReadAllTextAsync(Path.Combine(root, "artifacts/inputs/abi-inventory.json")))!;
+    await using var sourceLockInput = File.OpenRead(Path.Combine(root, "native/libnode/source.lock.json"));
+    if (preparedInventory["sourceLockSha256"]!.GetValue<string>() != Convert.ToHexStringLower(await SHA256.HashDataAsync(sourceLockInput)))
+        throw new InvalidDataException("Prepared source input inventory differs from source.lock.json.");
+}
 var lockBytes = await File.ReadAllBytesAsync(Path.Combine(root, "native/libnode/source.lock.json"));
 var lockHash = Convert.ToHexStringLower(SHA256.HashData(lockBytes));
 var manifest = JsonNode.Parse(lockBytes)!;
