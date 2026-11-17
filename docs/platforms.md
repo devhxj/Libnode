@@ -2,6 +2,8 @@
 
 The published 0.1.0 packages support `linux-x64` and `win-x64`. The planned 0.2.0
 release adds `linux-arm64` and `win-arm64` after native runner verification.
+This release line keeps Node 26 and modern .NET. Windows x86 and Linux x86 are
+excluded; no older Node or legacy managed host is included.
 The runtime packages contain native libraries; an AnyCPU .NET application still
 needs a native library matching its process architecture.
 
