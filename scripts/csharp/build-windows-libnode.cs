@@ -43,6 +43,17 @@ if (!File.Exists(pointerMarker))
 }
 if ((await File.ReadAllTextAsync(pointerMarker)).Trim() != pointerPatchHash)
     throw new InvalidDataException("Windows pointer patch changed; prepare a fresh source tree.");
+var snapshotPatch = Path.Combine(root, "native/libnode/patches/windows-snapshot-exports.patch");
+var snapshotPatchHash = await Hash(snapshotPatch);
+var snapshotMarker = Path.Combine(source, ".libnode-windows-snapshot-exports");
+if (!File.Exists(snapshotMarker))
+{
+    await Run("git", ["apply", "--check", snapshotPatch], source);
+    await Run("git", ["apply", snapshotPatch], source);
+    await File.WriteAllTextAsync(snapshotMarker, snapshotPatchHash);
+}
+if ((await File.ReadAllTextAsync(snapshotMarker)).Trim() != snapshotPatchHash)
+    throw new InvalidDataException("Windows snapshot export patch changed; prepare a fresh source tree.");
 var vswhere = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Microsoft Visual Studio/Installer/vswhere.exe");
 var installation = (await Run(vswhere, ["-latest", "-products", "*", "-requires", "Microsoft.VisualStudio.Component.VC.Llvm.Clang", "-property", "installationPath"], root)).Trim();
 if (string.IsNullOrWhiteSpace(installation)) throw new InvalidOperationException("Visual Studio C++ with Clang is required.");
@@ -93,7 +104,7 @@ await File.WriteAllTextAsync(Path.Combine(output, "dependencies.txt"), dependenc
 var record = new
 {
     sourceLockSha256 = await Hash(lockPath), windowsHarnessPatchSha256 = patchHash,
-    windowsPointerPatchSha256 = pointerPatchHash, sourceCommit,
+    windowsPointerPatchSha256 = pointerPatchHash, windowsSnapshotPatchSha256 = snapshotPatchHash, sourceCommit,
     node = manifest["node"], nodeApi = manifest["nodeApi"], embedding = manifest["embedding"], patches = manifest["patches"],
     rid = "win-x64", compiler = compilerVersion, rustc, cargo, python, configureArgs = buildArgs,
     additionalLinkLibraries = new[] { "Synchronization.lib" },

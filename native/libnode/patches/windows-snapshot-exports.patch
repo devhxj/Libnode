@@ -1,0 +1,45 @@
+diff --git a/src/node.h b/src/node.h
+--- a/src/node.h
++++ b/src/node.h
+@@ -494,7 +494,7 @@
+ class EmbedderSnapshotData {
+  public:
+   struct DeleteSnapshotData {
+-    void operator()(const EmbedderSnapshotData*) const;
++    NODE_EXTERN void operator()(const EmbedderSnapshotData*) const;
+   };
+   using Pointer =
+       std::unique_ptr<const EmbedderSnapshotData, DeleteSnapshotData>;
+@@ -502,25 +502,25 @@
+   // Return an EmbedderSnapshotData object that refers to the built-in
+   // snapshot of Node.js. This can have been configured through e.g.
+   // --node-snapshot-main=entry.js.
+-  static Pointer BuiltinSnapshotData();
++  NODE_EXTERN static Pointer BuiltinSnapshotData();
+ 
+   // Return an EmbedderSnapshotData object that is based on an input file.
+   // Calling this method will consume but not close the FILE* handle.
+   // The FILE* handle can be closed immediately following this call.
+   // If the snapshot is invalid, this returns an empty pointer.
+-  static Pointer FromFile(FILE* in);
+-  static Pointer FromBlob(const std::vector<char>& in);
+-  static Pointer FromBlob(std::string_view in);
++  NODE_EXTERN static Pointer FromFile(FILE* in);
++  NODE_EXTERN static Pointer FromBlob(const std::vector<char>& in);
++  NODE_EXTERN static Pointer FromBlob(std::string_view in);
+ 
+   // Write this EmbedderSnapshotData object to an output file.
+   // Calling this method will not close the FILE* handle.
+   // The FILE* handle can be closed immediately following this call.
+-  void ToFile(FILE* out) const;
+-  std::vector<char> ToBlob() const;
++  NODE_EXTERN void ToFile(FILE* out) const;
++  NODE_EXTERN std::vector<char> ToBlob() const;
+ 
+   // Returns whether custom snapshots can be used. Currently, this always
+   // returns false since V8 enforces shared readonly-heap.
+-  static bool CanUseCustomSnapshotPerIsolate();
++  NODE_EXTERN static bool CanUseCustomSnapshotPerIsolate();
+ 
+   EmbedderSnapshotData(const EmbedderSnapshotData&) = delete;
+   EmbedderSnapshotData& operator=(const EmbedderSnapshotData&) = delete;

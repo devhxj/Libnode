@@ -16,11 +16,13 @@ var sourceLockPath = Path.Combine(root, "native/libnode/source.lock.json");
 var sourceLock = JsonNode.Parse(await File.ReadAllTextAsync(sourceLockPath))!;
 var patch = Path.Combine(root, "native/libnode/patches/windows-shared-harness.patch");
 var pointerPatch = Path.Combine(root, "native/libnode/patches/windows-pointer-exchange.patch");
+var snapshotPatch = Path.Combine(root, "native/libnode/patches/windows-snapshot-exports.patch");
 if (nativeRecord["rid"]!.GetValue<string>() != "win-x64" ||
     nativeRecord["librarySha256"]!.GetValue<string>() != await Hash(Path.Combine(directory, "libnode.dll")) ||
     nativeRecord["sourceLockSha256"]!.GetValue<string>() != await Hash(sourceLockPath) ||
     nativeRecord["windowsHarnessPatchSha256"]!.GetValue<string>() != await Hash(patch) ||
-    nativeRecord["windowsPointerPatchSha256"]?.GetValue<string>() != await Hash(pointerPatch))
+    nativeRecord["windowsPointerPatchSha256"]?.GetValue<string>() != await Hash(pointerPatch) ||
+    nativeRecord["windowsSnapshotPatchSha256"]?.GetValue<string>() != await Hash(snapshotPatch))
     throw new InvalidDataException("Windows artifact identity or source lock does not match this checkout.");
 await Run("dotnet", ["run", "--file", "scripts/csharp/build-libnode.cs", "--", "--prepare-only"], root);
 var source = Path.Combine(root, "artifacts/sources/node-" + sourceLock["node"]!["tag"]!.GetValue<string>());
@@ -42,6 +44,15 @@ if (!File.Exists(pointerMarker))
 }
 if ((await File.ReadAllTextAsync(pointerMarker)).Trim() != await Hash(pointerPatch))
     throw new InvalidDataException("Windows pointer patch differs from its source record.");
+var snapshotMarker = Path.Combine(source, ".libnode-windows-snapshot-exports");
+if (!File.Exists(snapshotMarker))
+{
+    await Run("git", ["apply", "--check", snapshotPatch], source);
+    await Run("git", ["apply", snapshotPatch], source);
+    await File.WriteAllTextAsync(snapshotMarker, await Hash(snapshotPatch));
+}
+if ((await File.ReadAllTextAsync(snapshotMarker)).Trim() != await Hash(snapshotPatch))
+    throw new InvalidDataException("Windows snapshot export patch differs from its source record.");
 var release = Path.Combine(source, "out/Release");
 Directory.CreateDirectory(release);
 foreach (var name in new[] { "libnode.dll", "libnode.lib", "embedtest.exe" })
