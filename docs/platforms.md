@@ -12,7 +12,7 @@ needs a native library matching its process architecture.
 | linux-x64 | Tier 1 | Published in 0.1.0 |
 | win-x64 | Tier 1 | Published in 0.1.0 |
 | linux-arm64 | Tier 1 | Native ARM64 build and test lane added; verification pending |
-| win-arm64 | Tier 2 | Native ARM64 build and test lane added; verification pending |
+| win-arm64 | Tier 2 | Native, managed, NuGet consumer and all 30 Node 26 checks pass on Windows 11 ARM; 0.2.0 publication pending |
 | linux-arm | Experimental ARMv7 | Requires separate build and 32-bit .NET runtime testing |
 | linux-x86 | Experimental | .NET 11 does not list Linux x86; no supported modern .NET host lane |
 | win-x86 | Rejected by Node 26 vcbuild | Requires a separate older Node line or an unsupported port |

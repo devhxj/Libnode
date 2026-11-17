@@ -62,7 +62,7 @@ The package projects produce native runtime assets without adding another manage
 interop layer:
 
 - `Jazor.LibNode` — metapackage for the complete set of validated runtime packages.
-- `Jazor.LibNode.<rid>` — platform library under `runtimes/<rid>/native/`, with source/build metadata and licenses. The 0.1.0 release closure targets `linux-x64` and `win-x64`.
+- `Jazor.LibNode.<rid>` — platform library under `runtimes/<rid>/native/`, with source/build metadata and licenses. Published 0.1.0 supports `linux-x64` and `win-x64`; the 0.2.0 release catalog adds `linux-arm64` and `win-arm64` after verification.
 
 The Linux development candidate passes **60 native embedding cases**, **22 Microsoft
 embedding/GC tests**, **38 separate mock tests**, and an isolated consumer using the

@@ -4,5 +4,7 @@
   <ItemGroup>
     <LibNodeRuntimePackage Include="linux-x64" />
     <LibNodeRuntimePackage Include="win-x64" />
+    <LibNodeRuntimePackage Include="linux-arm64" />
+    <LibNodeRuntimePackage Include="win-arm64" />
   </ItemGroup>
 </Project>

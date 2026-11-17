@@ -12,6 +12,8 @@
     <dependencies>
       <dependency id="Jazor.LibNode.linux-x64" version="[$version$]" />
       <dependency id="Jazor.LibNode.win-x64" version="[$version$]" />
+      <dependency id="Jazor.LibNode.linux-arm64" version="[$version$]" />
+      <dependency id="Jazor.LibNode.win-arm64" version="[$version$]" />
     </dependencies>
   </metadata>
   <files>

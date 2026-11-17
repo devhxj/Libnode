@@ -2,13 +2,13 @@
 
 ## 2026-11-17
 
-### 未发布 | Unreleased
+### Libnode 0.2.0
 
 中文 | English
 
 #### 新增功能
 
-- 增加 Linux ARM64 和 Windows ARM64 的原生构建、架构检查及独立运行验证流程；通过后纳入 0.2.0 发布。by @devhxj
+- 增加 Linux ARM64 和 Windows ARM64 的原生构建、架构检查及独立运行验证流程，发布时要求全部平台通过验证。by @devhxj
 - 增加 30 项 Node 26 运行时特性验证，覆盖 Temporal、Web API、加密、Worker、WebAssembly、模块、TypeScript 和 SQLite，并作为包发布门禁。by @devhxj
 
 #### 其他变更
@@ -17,7 +17,7 @@
 
 New Features
 
-- Add native Linux ARM64 and Windows ARM64 builds, binary architecture checks and native runner verification for inclusion in 0.2.0 after acceptance. by @devhxj
+- Add native Linux ARM64 and Windows ARM64 builds, binary architecture checks and native runner verification, with acceptance required on every release platform. by @devhxj
 - Add 30 Node 26 runtime checks covering Temporal, Web APIs, crypto, workers, WebAssembly, modules, TypeScript and SQLite as package publishing gates. by @devhxj
 
 Chores
