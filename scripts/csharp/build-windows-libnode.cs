@@ -10,8 +10,9 @@ if (!OperatingSystem.IsWindows() || RuntimeInformation.ProcessArchitecture != Ar
     throw new PlatformNotSupportedException("Build win-x64 on an x64 Windows host with Visual Studio C++/Clang, Python, NASM and Rust.");
 var root = Directory.GetCurrentDirectory();
 Directory.CreateDirectory(Path.Combine(root, "artifacts"));
-await Run("dotnet", ["run", "--file", "scripts/csharp/build-libnode.cs", "--", "--prepare-only"], root,
-    log: Path.Combine(root, "artifacts/windows-source-prepare.log"));
+if (!args.Contains("--source-prepared", StringComparer.Ordinal))
+    await Run("dotnet", ["run", "--file", "scripts/csharp/build-libnode.cs", "--", "--prepare-only"], root,
+        log: Path.Combine(root, "artifacts/windows-source-prepare.log"));
 var lockPath = Path.Combine(root, "native/libnode/source.lock.json");
 var manifest = JsonNode.Parse(await File.ReadAllTextAsync(lockPath))!;
 var source = Path.Combine(root, "artifacts/sources/node-" + manifest["node"]!["tag"]!.GetValue<string>());

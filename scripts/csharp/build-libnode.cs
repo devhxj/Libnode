@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 var root = Directory.GetCurrentDirectory();
 var jobs = Math.Min(Environment.ProcessorCount, 8);
 var prepareOnly = false;
+var inputsPrepared = false;
 var toolchain = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".local/opt/jazor-toolchain/usr/bin");
 for (var index = 0; index < args.Length; index++)
 {
@@ -18,13 +19,15 @@ for (var index = 0; index < args.Length; index++)
         case "--jobs": jobs = int.Parse(args[++index]); break;
         case "--toolchain": toolchain = Path.GetFullPath(args[++index]); break;
         case "--prepare-only": prepareOnly = true; break;
+        case "--inputs-prepared": inputsPrepared = true; break;
         default: throw new ArgumentException($"Unknown argument: {args[index]}");
     }
 }
 if (jobs < 1) throw new ArgumentOutOfRangeException(nameof(jobs));
 if ((!OperatingSystem.IsLinux() && !(prepareOnly && OperatingSystem.IsWindows())) || RuntimeInformation.ProcessArchitecture != Architecture.X64)
     throw new PlatformNotSupportedException("The initial build recipe supports linux-x64 only. Other candidate RIDs require their own build and runtime evidence.");
-await Run("dotnet", ["run", "--file", "scripts/csharp/prepare-libnode.cs", "--", "--download-node"], root);
+if (!inputsPrepared)
+    await Run("dotnet", ["run", "--file", "scripts/csharp/prepare-libnode.cs", "--", "--download-node"], root);
 var lockBytes = await File.ReadAllBytesAsync(Path.Combine(root, "native/libnode/source.lock.json"));
 var lockHash = Convert.ToHexStringLower(SHA256.HashData(lockBytes));
 var manifest = JsonNode.Parse(lockBytes)!;

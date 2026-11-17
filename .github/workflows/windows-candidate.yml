@@ -55,7 +55,8 @@ jobs:
       - name: Download and verify locked inputs
         run: dotnet run --file scripts/csharp/prepare-libnode.cs -- --download-node
       - name: Prepare native source without compiling V8
-        run: dotnet run --file scripts/csharp/build-libnode.cs -- --prepare-only
+        timeout-minutes: 15
+        run: dotnet run --file scripts/csharp/build-libnode.cs -- --prepare-only --inputs-prepared
       - name: Preserve source preparation evidence
         if: ${{ inputs.prepare_only }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
@@ -68,7 +69,7 @@ jobs:
         if: ${{ inputs.native_build_run_id == '' && !inputs.prepare_only }}
         env:
           RUSTUP_TOOLCHAIN: 1.100.0
-        run: dotnet run --file scripts/csharp/build-windows-libnode.cs
+        run: dotnet run --file scripts/csharp/build-windows-libnode.cs -- --source-prepared
       - name: Download prior Windows build
         if: ${{ inputs.native_build_run_id != '' && !inputs.prepare_only }}
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
