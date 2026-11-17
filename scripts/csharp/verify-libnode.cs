@@ -72,6 +72,8 @@ if (nativeRecord["sourceLockSha256"]!.GetValue<string>() != await Hash(Path.Comb
 if (nativeRecord["librarySha256"]!.GetValue<string>() != hash) throw new InvalidDataException("Candidate library hash differs from the build manifest.");
 if (windows && nativeRecord["windowsHarnessPatchSha256"]?.GetValue<string>() != await Hash(Path.Combine(root, "native/libnode/patches/windows-shared-harness.patch")))
     throw new InvalidDataException("Windows harness patch differs from its native build record.");
+if (windows && nativeRecord["windowsPointerPatchSha256"]?.GetValue<string>() != await Hash(Path.Combine(root, "native/libnode/patches/windows-pointer-exchange.patch")))
+    throw new InvalidDataException("Windows pointer patch differs from its native build record.");
 var nodeSource = Path.Combine(root, "artifacts/sources/node-" + sourceLock["node"]!["tag"]!.GetValue<string>());
 var harness = Path.Combine(nodeSource, "out/Release", windows ? "embedtest.exe" : "embedtest");
 var linkage = windows ? "" : await Run("ldd", [harness], root, "native-harness-linkage.log");

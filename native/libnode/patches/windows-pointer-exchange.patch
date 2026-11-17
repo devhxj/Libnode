@@ -1,0 +1,12 @@
+diff --git a/src/node_embedding_api_cpp.h b/src/node_embedding_api_cpp.h
+--- a/src/node_embedding_api_cpp.h
++++ b/src/node_embedding_api_cpp.h
+@@ -204,7 +204,7 @@
+ 
+   NodeCStringArray(NodeCStringArray&& other) noexcept
+       : size_(std::exchange(other.size_, 0)),
+-        c_strs_(std::exchange(other.c_strs_, 0)),
++        c_strs_(std::exchange(other.c_strs_, nullptr)),
+         allocated_buffer_(std::exchange(other.allocated_buffer_, nullptr)) {
+     if (size_ <= inplace_buffer_.size()) {
+       c_strs_ = inplace_buffer_.data();
