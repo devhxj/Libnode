@@ -45,6 +45,7 @@ var compilerVersion = await Run(compiler, ["--version"], source, environment);
 var rustc = await Run("rustc", ["--version"], source, environment);
 var cargo = await Run("cargo", ["--version"], source, environment);
 var python = await Run("python", ["--version"], source, environment);
+var sourceCommit = (await Run("git", ["rev-parse", "HEAD"], root)).Trim();
 // Default configuration is Release. Omitting the 'release' switch avoids
 // enabling optional LTCG. Build only the shared library and embedding harness.
 environment["msbuild_args"] = "/t:embedtest";
@@ -72,7 +73,7 @@ await File.WriteAllTextAsync(Path.Combine(output, "exports.txt"), symbols);
 await File.WriteAllTextAsync(Path.Combine(output, "dependencies.txt"), dependencies);
 var record = new
 {
-    sourceLockSha256 = await Hash(lockPath), windowsHarnessPatchSha256 = patchHash,
+    sourceLockSha256 = await Hash(lockPath), windowsHarnessPatchSha256 = patchHash, sourceCommit,
     node = manifest["node"], nodeApi = manifest["nodeApi"], embedding = manifest["embedding"], patches = manifest["patches"],
     rid = "win-x64", compiler = compilerVersion, rustc, cargo, python, configureArgs = buildArgs,
     buildHost = RuntimeInformation.OSDescription, librarySha256 = await Hash(library),

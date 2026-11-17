@@ -1,5 +1,4 @@
 # Preserve upstream license bytes and unified-diff blank context lines.
+* text=auto eol=lf
 native/libnode/licenses/* -text whitespace=-blank-at-eol,-blank-at-eof
 native/libnode/patches/*.patch -text whitespace=-blank-at-eol,-blank-at-eof
-*.yml text eol=lf
-*.cs text eol=lf

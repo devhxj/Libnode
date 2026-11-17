@@ -175,3 +175,13 @@ needed locally or in GitHub.
 The binary retains its build machine's OS requirements. The current local build
 requires GLIBC 2.39 and GLIBCXX 3.4.32, suitable for the Ubuntu 24.04 verification
 runner. Reusing it does not establish compatibility with older distributions.
+
+Windows x64 builds once in `windows-candidate.yml` using Visual Studio Clang and
+Rust. The workflow preserves the DLL, import library, native harness and build
+record as `libnode-win-x64-build`. Pass that run's numeric ID as
+`windows_build_run_id` to the manual publishing workflow to reuse it. The Windows
+job verifies its source lock and patch, prepares source fixtures, imports the
+native outputs and repeats compatibility tests without rebuilding V8. Both RID
+packages and the `Jazor.LibNode` metapackage publish as 0.1.0 only after the
+platform gates, package hashes and actual release metapackage consumers pass on
+Linux and Windows.

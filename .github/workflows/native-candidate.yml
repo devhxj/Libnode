@@ -41,6 +41,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: libnode-linux-${{ inputs.release_ref || github.ref }}-${{ inputs.package_version || 'candidate' }}
+  cancel-in-progress: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+
 jobs:
   linux-candidate:
     # Development evidence only: ubuntu-24.04 is not a minimum-glibc support claim.

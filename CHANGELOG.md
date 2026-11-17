@@ -2,7 +2,7 @@
 
 ## 2026-11-17
 
-### 未发布 | Unreleased
+### Libnode 0.1.0
 
 中文 | English
 

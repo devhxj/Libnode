@@ -140,9 +140,36 @@ jobs:
           if-no-files-found: error
           path: artifacts/release/packages/*
 
+  verify-windows-package:
+    needs: [release, package]
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: cmd
+    steps:
+      - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
+        with:
+          ref: ${{ needs.release.outputs.commit }}
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73
+        with:
+          global-json-file: global.json
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: libnode-release-packages
+          path: artifacts/release/packages
+      - name: Verify actual release metapackage on Windows
+        env:
+          PACKAGE_VERSION: ${{ needs.release.outputs.package_version }}
+        run: dotnet run --file scripts/csharp/verify-release-consumer.cs -- --package-version "%PACKAGE_VERSION%"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: libnode-win-x64-release-consumer
+          path: artifacts/release/packages/release-consumer-win-x64.json
+          if-no-files-found: error
+
   publish:
-    needs: [release, verify, verify-windows, package]
-    if: ${{ !cancelled() && needs.release.result == 'success' && needs.verify.result == 'success' && needs.verify-windows.result == 'success' && needs.package.result == 'success' }}
+    needs: [release, verify, verify-windows, package, verify-windows-package]
+    if: ${{ !cancelled() && needs.release.result == 'success' && needs.verify.result == 'success' && needs.verify-windows.result == 'success' && needs.package.result == 'success' && needs.verify-windows-package.result == 'success' }}
     runs-on: ubuntu-24.04
     environment: production
     permissions:
