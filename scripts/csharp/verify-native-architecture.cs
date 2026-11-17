@@ -2,20 +2,32 @@
 
 using System.Buffers.Binary;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 
 string? rid = null;
 string? library = null;
+var host = false;
 for (var i = 0; i < args.Length; i++)
 {
     switch (args[i])
     {
         case "--rid": rid = args[++i]; break;
         case "--library": library = args[++i]; break;
+        case "--host": host = true; break;
         default: throw new ArgumentException("Use --rid <RID> --library <path>.");
     }
 }
-if (library is null || rid is not ("linux-x64" or "linux-arm64" or "win-x64" or "win-arm64"))
+if (rid is not ("linux-x64" or "linux-arm64" or "win-x64" or "win-arm64"))
     throw new ArgumentException("Select linux-x64, linux-arm64, win-x64 or win-arm64 and pass --library.");
+if (host)
+{
+    var hostRid = (OperatingSystem.IsWindows() ? "win-" : OperatingSystem.IsLinux() ? "linux-" : "unsupported-") +
+        RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
+    if (hostRid != rid) throw new InvalidDataException($"Requested {rid}, but the .NET process runs as {hostRid}.");
+    Console.WriteLine("Verified native runner architecture: " + hostRid);
+    if (library is null) return;
+}
+if (library is null) throw new ArgumentException("Pass --library or --host.");
 using var input = File.OpenRead(library);
 if (rid.StartsWith("win-", StringComparison.Ordinal))
 {

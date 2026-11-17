@@ -31,6 +31,17 @@ on:
         default: ''
         type: string
 
+      linux_arm64_build_run_id:
+        description: 'Optional verified Linux ARM64 candidate run to reuse'
+        required: false
+        default: ''
+        type: string
+      windows_arm64_build_run_id:
+        description: 'Optional Windows ARM64 candidate run to reuse'
+        required: false
+        default: ''
+        type: string
+
 permissions:
   contents: read
   actions: read
@@ -108,9 +119,17 @@ jobs:
       release_ref: ${{ needs.release.outputs.commit }}
       native_build_run_id: ${{ inputs.windows_build_run_id || '' }}
 
+  verify-arm64:
+    needs: release
+    uses: ./.github/workflows/arm-candidate.yml
+    with:
+      release_ref: ${{ needs.release.outputs.commit }}
+      linux_build_run_id: ${{ inputs.linux_arm64_build_run_id || '' }}
+      windows_build_run_id: ${{ inputs.windows_arm64_build_run_id || '' }}
+
   package:
-    needs: [release, verify, verify-windows]
-    if: ${{ !cancelled() && needs.release.result == 'success' && needs.verify.result == 'success' && needs.verify-windows.result == 'success' }}
+    needs: [release, verify, verify-windows, verify-arm64]
+    if: ${{ !cancelled() && needs.release.result == 'success' && needs.verify.result == 'success' && needs.verify-windows.result == 'success' && needs.verify-arm64.result == 'success' }}
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
@@ -128,6 +147,14 @@ jobs:
         with:
           name: libnode-win-x64-candidate
           path: artifacts
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: libnode-linux-arm64-candidate
+          path: artifacts
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: libnode-win-arm64-candidate
+          path: artifacts
       - name: Pack and verify Linux and Windows release closure
         env:
           PACKAGE_VERSION: ${{ needs.release.outputs.package_version }}
@@ -142,7 +169,15 @@ jobs:
 
   verify-windows-package:
     needs: [release, package]
-    runs-on: windows-2022
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: win-x64
+            runner: windows-2022
+          - rid: win-arm64
+            runner: windows-11-arm
+    runs-on: ${{ matrix.runner }}
     defaults:
       run:
         shell: cmd
@@ -163,13 +198,37 @@ jobs:
         run: dotnet run --file scripts/csharp/verify-release-consumer.cs -- --package-version "%PACKAGE_VERSION%"
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          name: libnode-win-x64-release-consumer
-          path: artifacts/release/packages/release-consumer-win-x64.json
+          name: libnode-${{ matrix.rid }}-release-consumer
+          path: artifacts/release/packages/release-consumer-${{ matrix.rid }}.json
+          if-no-files-found: error
+
+  verify-linux-arm64-package:
+    needs: [release, package]
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
+        with:
+          ref: ${{ needs.release.outputs.commit }}
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73
+        with:
+          global-json-file: global.json
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: libnode-release-packages
+          path: artifacts/release/packages
+      - name: Verify actual release metapackage on Linux ARM64
+        env:
+          PACKAGE_VERSION: ${{ needs.release.outputs.package_version }}
+        run: dotnet run --file scripts/csharp/verify-release-consumer.cs -- --package-version "$PACKAGE_VERSION"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: libnode-linux-arm64-release-consumer
+          path: artifacts/release/packages/release-consumer-linux-arm64.json
           if-no-files-found: error
 
   publish:
-    needs: [release, verify, verify-windows, package, verify-windows-package]
-    if: ${{ !cancelled() && needs.release.result == 'success' && needs.verify.result == 'success' && needs.verify-windows.result == 'success' && needs.package.result == 'success' && needs.verify-windows-package.result == 'success' }}
+    needs: [release, verify, verify-windows, verify-arm64, package, verify-windows-package, verify-linux-arm64-package]
+    if: ${{ !cancelled() && needs.release.result == 'success' && needs.verify.result == 'success' && needs.verify-windows.result == 'success' && needs.package.result == 'success' && needs.verify-windows-package.result == 'success' && needs.verify-arm64.result == 'success' && needs.verify-linux-arm64-package.result == 'success' }}
     runs-on: ubuntu-24.04
     environment: production
     permissions:

@@ -10,16 +10,20 @@ using System.Text.RegularExpressions;
 
 var root = Directory.GetCurrentDirectory();
 var operation = args.FirstOrDefault() ?? "pack";
-var archivePath = Path.GetFullPath("artifacts/local-build/libnode-linux-x64-native.zip");
+var rid = OperatingSystem.IsLinux() && RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "linux-arm64" : "linux-x64";
+string? archiveOption = null;
 string? expectedHash = null;
 string? releaseId = null;
+var reuseLockedSource = false;
 const string repository = "devhxj/Libnode";
-const string assetName = "libnode-linux-x64-native.zip";
+
 for (var index = 1; index < args.Length; index++)
 {
     switch (args[index])
     {
-        case "--archive": archivePath = Path.GetFullPath(args[++index]); break;
+        case "--archive": archiveOption = args[++index]; break;
+        case "--rid": rid = args[++index]; break;
+        case "--reuse-locked-source": reuseLockedSource = true; break;
         case "--sha256": expectedHash = args[++index]; break;
         case "--release-id": releaseId = args[++index]; break;
         default: throw new ArgumentException($"Unknown option: {args[index]}");
@@ -27,7 +31,10 @@ for (var index = 1; index < args.Length; index++)
 }
 if (operation is not ("pack" or "upload" or "download" or "import"))
     throw new ArgumentException("Use native-bundle.cs pack|upload|download|import [--archive <zip>] [--sha256 <hash>] [--release-id <id>].");
-var nativeRoot = Path.Combine(root, "artifacts/native/linux-x64");
+if (rid is not ("linux-x64" or "linux-arm64")) throw new ArgumentException("Select linux-x64 or linux-arm64.");
+var assetName = "libnode-" + rid + "-native.zip";
+var archivePath = Path.GetFullPath(archiveOption ?? "artifacts/local-build/" + assetName);
+var nativeRoot = Path.Combine(root, "artifacts/native", rid);
 var lockPath = Path.Combine(root, "native/libnode/source.lock.json");
 var sourceLock = JsonNode.Parse(await File.ReadAllTextAsync(lockPath))!;
 var source = Path.Combine(root, "artifacts/sources/node-" + sourceLock["node"]!["tag"]!.GetValue<string>());
@@ -73,7 +80,7 @@ if (operation is "pack" or "upload")
     var libraryHash = await Hash(Path.Combine(nativeRoot, "libnode.so"));
     if (record["sourceLockSha256"]!.GetValue<string>() != await Hash(lockPath) ||
         record["librarySha256"]!.GetValue<string>() != libraryHash ||
-        record["rid"]!.GetValue<string>() != "linux-x64" || record["nativeCompatibilityVerified"]?.GetValue<bool>() != true)
+        record["rid"]!.GetValue<string>() != rid || record["nativeCompatibilityVerified"]?.GetValue<bool>() != true)
         throw new InvalidDataException("Local candidate must match the source lock and have completed compatibility verification.");
     var runtimeName = "libnode.so." + record["runtimeIdentity"]!["modules"]!.GetValue<string>();
     if (await Hash(Path.Combine(release, runtimeName)) != libraryHash)
@@ -84,7 +91,7 @@ if (operation is "pack" or "upload")
     foreach (var pair in sources) hashes.Add(pair.Key, await Hash(pair.Value));
     var manifest = new
     {
-        schemaVersion = 1, rid = "linux-x64", repositoryCommit = commit,
+        schemaVersion = 1, rid, repositoryCommit = commit,
         sourceLockSha256 = await Hash(lockPath), librarySha256 = libraryHash,
         runtimeLibraryName = runtimeName, files = hashes
     };
@@ -130,16 +137,17 @@ if (operation is "pack" or "upload")
 }
 
 RequireHash();
-if (!OperatingSystem.IsLinux() || RuntimeInformation.ProcessArchitecture != Architecture.X64)
-    throw new PlatformNotSupportedException("Native bundle import supports linux-x64 only.");
+var hostRid = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "linux-arm64" : "linux-x64";
+if (!OperatingSystem.IsLinux() || RuntimeInformation.ProcessArchitecture is not (Architecture.X64 or Architecture.Arm64) || rid != hostRid)
+    throw new PlatformNotSupportedException("Import the Linux bundle on its matching x64 or ARM64 host.");
 if (await Hash(archivePath) != expectedHash) throw new InvalidDataException("Native bundle SHA256 mismatch.");
 using (var archive = ZipFile.OpenRead(archivePath))
 {
     var descriptor = archive.GetEntry("native-bundle.json") ?? throw new InvalidDataException("Native bundle manifest is missing.");
     await using var manifestStream = descriptor.Open();
     var manifest = (await JsonNode.ParseAsync(manifestStream))!;
-    if (manifest["schemaVersion"]!.GetValue<int>() != 1 || manifest["rid"]!.GetValue<string>() != "linux-x64" ||
-        manifest["repositoryCommit"]!.GetValue<string>() != commit || manifest["sourceLockSha256"]!.GetValue<string>() != await Hash(lockPath))
+    if (manifest["schemaVersion"]!.GetValue<int>() != 1 || manifest["rid"]!.GetValue<string>() != rid ||
+        (!reuseLockedSource && manifest["repositoryCommit"]!.GetValue<string>() != commit) || manifest["sourceLockSha256"]!.GetValue<string>() != await Hash(lockPath))
         throw new InvalidDataException("Native bundle commit, RID or source lock does not match this checkout.");
     var expectedFiles = files.Select(name => "native/" + name).Append("embedtest").Order().ToArray();
     if (!manifest["files"]!.AsObject().Select(pair => pair.Key).Order().SequenceEqual(expectedFiles) ||
@@ -155,7 +163,7 @@ using (var archive = ZipFile.OpenRead(archivePath))
     if (!Regex.IsMatch(runtimeName, @"^libnode\.so\.[1-9]\d*$")) throw new InvalidDataException("Invalid native runtime filename.");
     await using var recordStream = archive.GetEntry("native/native-build.json")!.Open();
     var record = (await JsonNode.ParseAsync(recordStream))!;
-    if (record["rid"]!.GetValue<string>() != "linux-x64" ||
+    if (record["rid"]!.GetValue<string>() != rid ||
         record["sourceLockSha256"]!.GetValue<string>() != manifest["sourceLockSha256"]!.GetValue<string>() ||
         record["librarySha256"]!.GetValue<string>() != manifest["librarySha256"]!.GetValue<string>() ||
         manifest["files"]!["native/libnode.so"]!.GetValue<string>() != manifest["librarySha256"]!.GetValue<string>() ||
@@ -177,7 +185,8 @@ using (var archive = ZipFile.OpenRead(archivePath))
     var recordPath = Path.Combine(nativeRoot, "native-build.json");
     record["distributionOrigin"] = new JsonObject
     {
-        ["kind"] = "local-build", ["repositoryCommit"] = commit, ["archiveSha256"] = expectedHash
+        ["kind"] = "local-build", ["repositoryCommit"] = manifest["repositoryCommit"]!.GetValue<string>(),
+        ["verificationCommit"] = commit, ["archiveSha256"] = expectedHash
     };
     // A local result is provenance, not a substitute for testing this library on
     // the Actions runner. Existing release gates require fresh verification.

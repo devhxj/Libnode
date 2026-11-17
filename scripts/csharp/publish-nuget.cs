@@ -46,7 +46,7 @@ foreach (var rid in rids)
     var hash = await Hash(Path.Combine(directory, libraryName));
     if (record["rid"]!.GetValue<string>() != rid || record["sourceLockSha256"]!.GetValue<string>() != lockHash || record["librarySha256"]!.GetValue<string>() != hash)
         throw new InvalidDataException($"Native build provenance differs from release inputs for {rid}.");
-    if (rid == "win-x64")
+    if (rid.StartsWith("win-", StringComparison.Ordinal))
     {
         foreach (var (field, patch) in new[]
         {
@@ -59,6 +59,7 @@ foreach (var rid in rids)
         if (!record["additionalLinkLibraries"]!.AsArray().Any(item => item!.GetValue<string>() == "Synchronization.lib"))
             throw new InvalidDataException("Windows build is missing its Rust synchronization link dependency.");
     }
+    await Run("dotnet", ["run", "--file", "scripts/csharp/verify-native-architecture.cs", "--", "--rid", rid, "--library", Path.Combine(directory, libraryName)]);
     var verification = record["verification"];
     if (record["nativeCompatibilityVerified"]?.GetValue<bool>() != true ||
         verification?["librarySha256"]?.GetValue<string>() != hash ||
@@ -69,13 +70,17 @@ foreach (var rid in rids)
         throw new InvalidDataException($"Native, managed and consumer compatibility evidence is incomplete for {rid}.");
     identities.Add(rid, hash);
 }
-// The current issue lane runs on the Linux candidate. Expected managed failures
-// are explicit results; unexpected native regressions must block publication.
-var issues = JsonNode.Parse(await File.ReadAllTextAsync(Path.Combine(root, "artifacts/upstream-issues/results.json")))!;
-if (issues["librarySha256"]!.GetValue<string>() != identities["linux-x64"] ||
-    issues["unexpected"]!.AsArray().Count != 0 || issues["results"]!.AsArray().Count != 14 ||
-    issues["results"]!.AsArray().Any(result => result!["expected"]?.GetValue<bool>() != true))
-    throw new InvalidDataException("Upstream issue regression evidence does not match the release candidate.");
+// Each Linux runtime must have addon/issue evidence for that exact binary.
+foreach (var rid in rids.Where(rid => rid.StartsWith("linux-", StringComparison.Ordinal)))
+{
+    var reportPath = Path.Combine(root, "artifacts/upstream-issues", rid, "results.json");
+    if (rid == "linux-x64" && !File.Exists(reportPath)) reportPath = Path.Combine(root, "artifacts/upstream-issues/results.json");
+    var issues = JsonNode.Parse(await File.ReadAllTextAsync(reportPath))!;
+    if (issues["librarySha256"]!.GetValue<string>() != identities[rid] ||
+        issues["unexpected"]!.AsArray().Count != 0 || issues["results"]!.AsArray().Count != 14 ||
+        issues["results"]!.AsArray().Any(result => result!["expected"]?.GetValue<bool>() != true))
+        throw new InvalidDataException("Upstream issue regression evidence does not match the release candidate: " + rid);
+}
 Directory.CreateDirectory(output);
 // An exact closure prevents old locally packed packages from joining an upload.
 if (Directory.GetFiles(output, "*.nupkg").Any(path => !rids.Append("").Select(rid => PackagePath(rid)).Contains(path)))
@@ -135,8 +140,8 @@ string PackagePath(string rid) => Path.Combine(output, "Jazor.LibNode" + (rid.Le
 
 static string LibraryName(string rid) => rid switch
 {
-    "linux-x64" => "libnode.so",
-    "win-x64" => "libnode.dll",
+    "linux-x64" or "linux-arm64" => "libnode.so",
+    "win-x64" or "win-arm64" => "libnode.dll",
     "osx-x64" or "osx-arm64" => "libnode.dylib",
     _ => throw new InvalidDataException($"Unsupported release RID: {rid}")
 };

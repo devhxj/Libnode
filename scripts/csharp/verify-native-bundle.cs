@@ -51,6 +51,12 @@ var release = Path.Combine(fixture, "artifacts/sources/node-" + sourceLock["node
 Check("source preparation produced no V8 build outputs", Directory.GetFileSystemEntries(release).Select(Path.GetFileName).Order().SequenceEqual(new[] { "embedtest", "libnode.so." + record["runtimeIdentity"]!["modules"]!.GetValue<string>() }.Order()));
 var packResult = await Run("dotnet", fixture, ["run", "--file", Path.Combine(root, "scripts/csharp/publish-nuget.cs"), "--", "--package-version", "0.1.0-bundlecheck", "--skip-push"]);
 await Record("packaging requires fresh verification", packResult.ExitCode != 0 && packResult.Output.Contains("compatibility evidence is incomplete", StringComparison.OrdinalIgnoreCase), packResult.Output);
+await Command("git", fixture, ["-c", "user.name=Bundle verification", "-c", "user.email=bundle@example.invalid", "commit", "--allow-empty", "--quiet", "-m", "New release checkout with unchanged locked native inputs"]);
+await Failure("another release commit requires explicit reuse", ["import", "--archive", archivePath, "--sha256", hash], "does not match this checkout");
+await Success("reuse locked native inputs across release commits", fixture, ["import", "--archive", archivePath, "--sha256", hash, "--reuse-locked-source"]);
+var reusedRecord = JsonNode.Parse(await File.ReadAllTextAsync(Path.Combine(native, "native-build.json")))!;
+Check("reuse retains original commit and requires fresh checks", reusedRecord["nativeCompatibilityVerified"]!.GetValue<bool>() == false &&
+    reusedRecord["distributionOrigin"]!["repositoryCommit"]!.GetValue<string>() != reusedRecord["distributionOrigin"]!["verificationCommit"]!.GetValue<string>());
 await File.WriteAllTextAsync(Path.Combine(runRoot, "results.json"), JsonSerializer.Serialize(results, new JsonSerializerOptions { WriteIndented = true }));
 Console.WriteLine($"Native bundle verification passed {results.Count} checks. Clean imported checkout retained at {fixture}");
 

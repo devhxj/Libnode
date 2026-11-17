@@ -70,6 +70,8 @@ jobs:
           git config --global core.longpaths true
           rustup toolchain install 1.100.0 --profile minimal
           if /i "%PROCESSOR_ARCHITECTURE%"=="AMD64" choco install nasm --yes --no-progress
+      - name: Verify native .NET runner architecture
+        run: dotnet run --file scripts/csharp/verify-native-architecture.cs -- --rid win-${{ inputs.architecture || 'x64' }} --host
       - name: Download and verify locked inputs
         run: dotnet run --file scripts/csharp/prepare-libnode.cs -- --download-node
       - name: Identify native build cache
