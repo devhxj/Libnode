@@ -1,0 +1,40 @@
+#:property PublishAot=false
+
+using System.Diagnostics;
+using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
+
+if (args.Length != 1 || !Regex.IsMatch(args[0], @"^[1-9]\d*$"))
+    throw new ArgumentException("Pass the numeric Windows candidate run ID.");
+var runId = args[0];
+for (var attempt = 0; attempt < 350; attempt++)
+{
+    var metadata = JsonNode.Parse(await Api($"repos/devhxj/Libnode/actions/runs/{runId}"))!;
+    if (metadata["path"]!.GetValue<string>() != ".github/workflows/windows-candidate.yml")
+        throw new InvalidDataException("Native inputs must come from the Windows candidate workflow.");
+    var status = metadata["status"]!.GetValue<string>();
+    Console.WriteLine($"Windows candidate {runId}: {status}");
+    if (status == "completed")
+    {
+        var artifacts = JsonNode.Parse(await Api($"repos/devhxj/Libnode/actions/runs/{runId}/artifacts"))!;
+        if (!artifacts["artifacts"]!.AsArray().Any(item => item!["name"]!.GetValue<string>() == "libnode-win-x64-build" && item["expired"]!.GetValue<bool>() == false))
+            throw new InvalidDataException("Windows candidate completed without reusable native outputs; inspect its build log.");
+        Console.WriteLine("Windows native artifact is ready. Import and fresh verification are required.");
+        return;
+    }
+    await Task.Delay(TimeSpan.FromSeconds(60));
+}
+throw new TimeoutException("Windows candidate did not complete within the release wait budget.");
+
+static async Task<string> Api(string endpoint)
+{
+    var start = new ProcessStartInfo("gh") { RedirectStandardOutput = true, RedirectStandardError = true };
+    start.ArgumentList.Add("api");
+    start.ArgumentList.Add(endpoint);
+    using var process = Process.Start(start)!;
+    var stdout = process.StandardOutput.ReadToEndAsync();
+    var stderr = process.StandardError.ReadToEndAsync();
+    await process.WaitForExitAsync();
+    if (process.ExitCode != 0) throw new InvalidOperationException(await stderr);
+    return await stdout;
+}

@@ -90,6 +90,12 @@ jobs:
           key: ${{ steps.restore-build.outputs.cache-primary-key }}
       - name: Download prior Windows build
         if: ${{ inputs.native_build_run_id != '' && !inputs.prepare_only }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NATIVE_BUILD_RUN_ID: ${{ inputs.native_build_run_id }}
+        run: dotnet run --file scripts/csharp/wait-windows-build.cs -- "%NATIVE_BUILD_RUN_ID%"
+      - name: Import artifact from prior Windows build
+        if: ${{ inputs.native_build_run_id != '' && !inputs.prepare_only }}
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           name: libnode-win-x64-build
