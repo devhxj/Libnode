@@ -104,6 +104,23 @@ remain unvalidated here. The official publishing entry is
 publishing and the same verification gates for manual dry runs.
 See [the release guide](docs/releases.md) for setup and release preparation.
 
+To reuse a verified local build in Actions without compiling V8 again, commit
+and push the source, then run:
+
+```text
+dotnet run --file scripts/csharp/native-bundle.cs -- upload
+```
+
+Pass the printed draft release ID and SHA256 to the manual verification or
+publishing workflow. Actions imports the exact library and harness and repeats
+the verification gates. See [local build publishing](docs/releases.md#reuse-a-local-native-build)
+for commands and commit/tag requirements.
+
+`dotnet run --file scripts/csharp/verify-native-bundle.cs` tests the real local
+bundle in an isolated clean checkout, including checksum/commit rejection and
+the requirement for fresh verification before packaging. It retains the imported
+checkout under `artifacts/native-bundle-verification/` for compatibility checks.
+
 See [source and port notes](native/libnode/README.md),
 [the build-reference review](docs/sigma-build-reference.md), and
 [the upstream issue audit](docs/upstream-issue-audit.md).

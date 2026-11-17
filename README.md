@@ -68,8 +68,9 @@ see [development instructions](README-DEV.md) to reproduce them.
 ## Development
 
 For building, testing and packaging, see [README-DEV.md](README-DEV.md).
-The Linux candidate workflow repeats the native build, upstream compatibility tests,
-NuGet consumer and issue regressions, and preserves their reports.
+The Linux candidate workflow builds from source or imports a verified local build,
+then repeats upstream compatibility tests, NuGet consumers and issue regressions
+and preserves their reports. Importing a local build skips V8 compilation.
 Release tags publish the verified package set through GitHub Actions, using NuGet
 trusted publishing. See [the release guide](docs/releases.md) for setup and dry runs.
 

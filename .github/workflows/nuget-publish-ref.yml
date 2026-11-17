@@ -15,6 +15,16 @@ on:
         required: false
         default: false
         type: boolean
+      native_release_id:
+        description: 'Optional draft release ID from native-bundle.cs upload; skips V8 compilation'
+        required: false
+        default: ''
+        type: string
+      native_archive_sha256:
+        description: 'Required archive SHA256 when using a local native build'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -26,6 +36,8 @@ concurrency:
 jobs:
   release:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write # Read authenticated draft-release build inputs.
     outputs:
       commit: ${{ steps.release.outputs.commit }}
       package_version: ${{ steps.release.outputs.package_version }}
@@ -44,6 +56,30 @@ jobs:
         env:
           RELEASE_TAG: ${{ inputs.release_ref || github.ref_name }}
         run: dotnet run --file scripts/csharp/release-notes.cs -- --tag "$RELEASE_TAG" --require-tag --output artifacts/release-notes.md --github-output "$GITHUB_OUTPUT"
+      - name: Validate local input selection
+        env:
+          NATIVE_RELEASE_ID: ${{ inputs.native_release_id }}
+          NATIVE_ARCHIVE_SHA256: ${{ inputs.native_archive_sha256 }}
+        run: |
+          if [[ -z "$NATIVE_RELEASE_ID" && -n "$NATIVE_ARCHIVE_SHA256" ]]; then
+            echo 'native_release_id and native_archive_sha256 must be supplied together' >&2
+            exit 1
+          fi
+      - name: Download and authenticate local native bundle
+        if: ${{ inputs.native_release_id != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NATIVE_RELEASE_ID: ${{ inputs.native_release_id }}
+          NATIVE_ARCHIVE_SHA256: ${{ inputs.native_archive_sha256 }}
+        run: dotnet run --file scripts/csharp/native-bundle.cs -- download --release-id "$NATIVE_RELEASE_ID" --sha256 "$NATIVE_ARCHIVE_SHA256"
+      - name: Pass local native bundle to verification
+        if: ${{ inputs.native_release_id != '' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: libnode-native-input
+          path: artifacts/local-build/libnode-linux-x64-native.zip
+          if-no-files-found: error
+          compression-level: 0
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: libnode-release-notes
@@ -56,6 +92,8 @@ jobs:
     with:
       release_ref: ${{ needs.release.outputs.commit }}
       package_version: ${{ needs.release.outputs.package_version }}
+      use_prebuilt: ${{ inputs.native_release_id != '' }}
+      native_archive_sha256: ${{ inputs.native_archive_sha256 || '' }}
 
   publish:
     needs: [release, verify]

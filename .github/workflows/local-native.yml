@@ -1,0 +1,58 @@
+name: Verify local native build
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: 'Exact source commit printed by native-bundle.cs upload'
+        required: true
+        type: string
+      native_release_id:
+        description: 'Draft release ID printed by native-bundle.cs upload'
+        required: true
+        type: string
+      native_archive_sha256:
+        description: 'Archive SHA256 printed by native-bundle.cs upload'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  input:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write # Draft releases require repository push access.
+    outputs:
+      commit: ${{ steps.source.outputs.commit }}
+    steps:
+      - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
+        with:
+          ref: ${{ inputs.source_ref }}
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73
+        with:
+          global-json-file: global.json
+      - name: Resolve source commit
+        id: source
+        run: echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+      - name: Download and authenticate local native bundle
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NATIVE_RELEASE_ID: ${{ inputs.native_release_id }}
+          NATIVE_ARCHIVE_SHA256: ${{ inputs.native_archive_sha256 }}
+        run: dotnet run --file scripts/csharp/native-bundle.cs -- download --release-id "$NATIVE_RELEASE_ID" --sha256 "$NATIVE_ARCHIVE_SHA256"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: libnode-native-input
+          path: artifacts/local-build/libnode-linux-x64-native.zip
+          if-no-files-found: error
+          compression-level: 0
+
+  verify:
+    needs: input
+    uses: ./.github/workflows/native-candidate.yml
+    with:
+      release_ref: ${{ needs.input.outputs.commit }}
+      use_prebuilt: true
+      native_archive_sha256: ${{ inputs.native_archive_sha256 }}

@@ -10,6 +10,15 @@ on:
         required: false
         default: ''
         type: string
+      use_prebuilt:
+        description: 'Import the libnode-native-input artifact from this run'
+        required: false
+        default: false
+        type: boolean
+      native_archive_sha256:
+        required: false
+        default: ''
+        type: string
   workflow_dispatch:
   pull_request:
   push:
@@ -27,6 +36,7 @@ on:
       - NOTICE.txt
       - CHANGELOG.md
       - .github/workflows/nuget-publish-ref.yml
+      - .github/workflows/local-native.yml
 
 permissions:
   contents: read
@@ -47,15 +57,28 @@ jobs:
       - name: Install native tools
         run: sudo apt-get update && sudo apt-get install --yes g++-13 make python3 xz-utils libatomic1
       - name: Select Rust toolchain
+        if: ${{ !inputs.use_prebuilt }}
         run: rustup toolchain install 1.100.0 --profile minimal
       - name: Build package projects
         run: dotnet build Jazor.LibNode.slnx
       - name: Build candidate and upstream harness
+        if: ${{ !inputs.use_prebuilt }}
         env:
           CC: gcc-13
           CXX: g++-13
           RUSTUP_TOOLCHAIN: 1.100.0
         run: dotnet run --file scripts/csharp/build-libnode.cs -- --jobs 4
+      - name: Download local native input
+        if: ${{ inputs.use_prebuilt }}
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: libnode-native-input
+          path: artifacts/local-build
+      - name: Import local candidate without compiling V8
+        if: ${{ inputs.use_prebuilt }}
+        env:
+          NATIVE_ARCHIVE_SHA256: ${{ inputs.native_archive_sha256 }}
+        run: dotnet run --file scripts/csharp/native-bundle.cs -- import --sha256 "$NATIVE_ARCHIVE_SHA256"
       - name: Reused tests and actual NuGet consumer
         run: dotnet run --file scripts/csharp/verify-libnode.cs
       - name: Upstream issue regressions

@@ -63,7 +63,7 @@ Release notes come directly from that version's curated section.
 ## Candidate and packaging checks
 
 The reusable Linux candidate workflow checks out the resolved release **commit**,
-builds native code from locked inputs and runs:
+builds native code from locked inputs or imports a local build, then runs:
 
 ```text
 dotnet build Jazor.LibNode.slnx
@@ -113,3 +113,63 @@ Configure the same authentication arrangement as Jazor:
 GitHub environment rules and the nuget.org trust policy are account settings;
 checking in the workflow does not create them. No release tag or public package
 is created by local verification.
+
+## Reuse a local native build
+
+A local Linux x64 build can supply the release binaries. Actions downloads and
+tests those binaries, packs the NuGet packages and publishes through the same
+trusted-publishing workflow. V8 and the native harness are not rebuilt.
+
+After building and running both compatibility scripts locally, commit and push
+the source and release notes. From that clean checkout, upload the verified build:
+
+```sh
+dotnet run --file scripts/csharp/native-bundle.cs -- upload
+```
+
+This creates a draft release containing a compressed build input bundle, not a
+product release. The command prints the exact source commit, `native_release_id`
+and `native_archive_sha256`. It includes the library, embedding harness, licenses,
+build record and checksums. `pack` creates the same ZIP locally without uploading.
+The locked source and fixtures are prepared again for verification; no compiler
+build of Node/V8 runs when importing the bundle.
+
+First check the handoff without choosing a product version or publishing packages:
+
+```sh
+gh workflow run local-native.yml --repo devhxj/Libnode \
+  -f source_ref=COMMIT \
+  -f native_release_id=RELEASE_ID \
+  -f native_archive_sha256=SHA256
+```
+
+For a release, prepare the dated changelog entry and commit it **before uploading
+the bundle**, so the bundle's commit matches the release tag. Create the tag
+locally, then dispatch the publishing workflow with that tag and the two printed
+values. Pushing `v*` tags immediately starts the default source-build workflow.
+Cancel that automatic run in Actions before starting the manual run with the
+local bundle:
+
+```sh
+git tag vX.Y.Z COMMIT
+git push origin vX.Y.Z
+# Cancel the automatic tag run in Actions, then:
+gh workflow run nuget-publish-ref.yml --repo devhxj/Libnode \
+  -f release_ref=vX.Y.Z -f dry_run=true \
+  -f native_release_id=RELEASE_ID \
+  -f native_archive_sha256=SHA256
+```
+
+The manual run with the bundle skips V8 compilation. After inspecting its results,
+dispatch the same command with `-f dry_run=false` to publish.
+
+The bundle must match the checkout commit and source lock exactly. Altered
+archives/files, unexpected entries and inconsistent build records are rejected.
+Import clears local verification status; all native, managed, addon and package
+consumer gates must pass again on the Actions runner. Local results are retained
+as provenance. Publishing still uses GitHub OIDC; no permanent NuGet key is
+needed locally or in GitHub.
+
+The binary retains its build machine's OS requirements. The current local build
+requires GLIBC 2.39 and GLIBCXX 3.4.32, suitable for the Ubuntu 24.04 verification
+runner. Reusing it does not establish compatibility with older distributions.

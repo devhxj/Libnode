@@ -17,6 +17,7 @@
 #### 其他变更
 
 - 从语义版本标签统一确定包版本，通过候选验证后使用 GitHub Actions trusted publishing 发布 NuGet、GitHub Packages 和 GitHub Release。by @devhxj
+- 支持上传本地已验证的原生构建，在 Actions 中复验和发布，避免重复编译 V8。by @devhxj
 
 New Features
 
@@ -29,3 +30,4 @@ Bug Fixes
 Chores
 
 - Derive one package version from a semantic version tag and publish verified packages to NuGet, GitHub Packages and GitHub Releases through GitHub Actions trusted publishing. by @devhxj
+- Upload a verified local native build for fresh verification and publishing in Actions without recompiling V8. by @devhxj
