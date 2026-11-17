@@ -24,8 +24,11 @@ for (var index = 0; index < args.Length; index++)
     }
 }
 if (jobs < 1) throw new ArgumentOutOfRangeException(nameof(jobs));
-if ((!OperatingSystem.IsLinux() && !(prepareOnly && OperatingSystem.IsWindows())) || RuntimeInformation.ProcessArchitecture != Architecture.X64)
-    throw new PlatformNotSupportedException("The initial build recipe supports linux-x64 only. Other candidate RIDs require their own build and runtime evidence.");
+if ((!OperatingSystem.IsLinux() && !(prepareOnly && OperatingSystem.IsWindows())) ||
+    RuntimeInformation.ProcessArchitecture is not (Architecture.X64 or Architecture.Arm64))
+    throw new PlatformNotSupportedException("Build Linux natively on x64 or ARM64; source preparation also supports Windows.");
+var architecture = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64";
+var rid = "linux-" + architecture;
 if (!inputsPrepared)
     await Run("dotnet", ["run", "--file", "scripts/csharp/prepare-libnode.cs", "--", "--download-node"], root);
 else
@@ -92,6 +95,7 @@ var release = Path.Combine(source, "out/Release");
 var candidates = Directory.GetFiles(release, "libnode.so.*");
 if (candidates.Length != 1) throw new InvalidOperationException($"Expected one versioned shared library, found {candidates.Length}.");
 var candidate = candidates[0];
+await Run("dotnet", ["run", "--file", Path.Combine(root, "scripts/csharp/verify-native-architecture.cs"), "--", "--rid", rid, "--library", candidate], root);
 var symbols = await Run("nm", ["-D", "--defined-only", candidate], source);
 var inventory = JsonNode.Parse(await File.ReadAllTextAsync(Path.Combine(root, "artifacts/inputs/abi-inventory.json")))!;
 foreach (var import in inventory["imports"]!.AsArray())
@@ -111,7 +115,7 @@ foreach (var prefix in new[] { "GLIBC_", "GLIBCXX_", "CXXABI_" })
         .Select(match => Version.Parse(match.Groups[1].Value)).ToArray();
     if (versions.Length != 0) requiredSymbolVersions[prefix.TrimEnd('_')] = versions.Max()!.ToString();
 }
-var output = Path.Combine(root, "artifacts/native/linux-x64");
+var output = Path.Combine(root, "artifacts/native", rid);
 Directory.CreateDirectory(output);
 File.Copy(candidate, Path.Combine(output, "libnode.so"), true);
 File.Copy(Path.Combine(source, "LICENSE"), Path.Combine(output, "NODE-LICENSE"), true);
@@ -124,7 +128,7 @@ var record = new
 {
     sourceLockSha256 = lockHash,
     node = manifest["node"], nodeApi = manifest["nodeApi"], embedding = manifest["embedding"], patches = manifest["patches"],
-    rid = "linux-x64", compiler, make, cargo, rustc, python, configureArgs, jobs,
+    rid, compiler, make, cargo, rustc, python, configureArgs, jobs,
     buildHost = RuntimeInformation.OSDescription,
     librarySha256 = Convert.ToHexStringLower(await SHA256.HashDataAsync(libraryStream)),
     dependencies, dynamicSection, symbolVersions, requiredSymbolVersions,

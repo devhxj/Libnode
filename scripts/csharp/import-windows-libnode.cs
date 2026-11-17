@@ -6,18 +6,20 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-if (!OperatingSystem.IsWindows() || RuntimeInformation.ProcessArchitecture != Architecture.X64)
-    throw new PlatformNotSupportedException("Import and verify the Windows candidate on Windows x64.");
+if (!OperatingSystem.IsWindows() || RuntimeInformation.ProcessArchitecture is not (Architecture.X64 or Architecture.Arm64))
+    throw new PlatformNotSupportedException("Import and verify the Windows candidate on Windows x64 or ARM64.");
+var rid = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "win-arm64" : "win-x64";
 var root = Directory.GetCurrentDirectory();
-var directory = Path.Combine(root, "artifacts/native/win-x64");
+var directory = Path.Combine(root, "artifacts/native", rid);
 var recordPath = Path.Combine(directory, "native-build.json");
 var nativeRecord = JsonNode.Parse(await File.ReadAllTextAsync(recordPath))!;
+await Run("dotnet", ["run", "--file", "scripts/csharp/verify-native-architecture.cs", "--", "--rid", rid, "--library", Path.Combine(directory, "libnode.dll")], root);
 var sourceLockPath = Path.Combine(root, "native/libnode/source.lock.json");
 var sourceLock = JsonNode.Parse(await File.ReadAllTextAsync(sourceLockPath))!;
 var patch = Path.Combine(root, "native/libnode/patches/windows-shared-harness.patch");
 var pointerPatch = Path.Combine(root, "native/libnode/patches/windows-pointer-exchange.patch");
 var snapshotPatch = Path.Combine(root, "native/libnode/patches/windows-snapshot-exports.patch");
-if (nativeRecord["rid"]!.GetValue<string>() != "win-x64" ||
+if (nativeRecord["rid"]!.GetValue<string>() != rid ||
     nativeRecord["librarySha256"]!.GetValue<string>() != await Hash(Path.Combine(directory, "libnode.dll")) ||
     nativeRecord["sourceLockSha256"]!.GetValue<string>() != await Hash(sourceLockPath) ||
     nativeRecord["windowsHarnessPatchSha256"]!.GetValue<string>() != await Hash(patch) ||

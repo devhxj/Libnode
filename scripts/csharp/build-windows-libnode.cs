@@ -6,8 +6,10 @@ using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 
-if (!OperatingSystem.IsWindows() || RuntimeInformation.ProcessArchitecture != Architecture.X64)
-    throw new PlatformNotSupportedException("Build win-x64 on an x64 Windows host with Visual Studio C++/Clang, Python, NASM and Rust.");
+if (!OperatingSystem.IsWindows() || RuntimeInformation.ProcessArchitecture is not (Architecture.X64 or Architecture.Arm64))
+    throw new PlatformNotSupportedException("Build Windows natively on an x64 or ARM64 host with Visual Studio C++/Clang, Python, NASM and Rust.");
+var architecture = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64";
+var rid = "win-" + architecture;
 var root = Directory.GetCurrentDirectory();
 Directory.CreateDirectory(Path.Combine(root, "artifacts"));
 if (!args.Contains("--source-prepared", StringComparer.Ordinal))
@@ -58,7 +60,7 @@ var vswhere = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.P
 var installation = (await Run(vswhere, ["-latest", "-products", "*", "-requires", "Microsoft.VisualStudio.Component.VC.Llvm.Clang", "-property", "installationPath"], root)).Trim();
 if (string.IsNullOrWhiteSpace(installation)) throw new InvalidOperationException("Visual Studio C++ with Clang is required.");
 var environmentScript = Path.Combine(root, "artifacts/windows-environment.cmd");
-await File.WriteAllTextAsync(environmentScript, $"@echo off\r\ncall \"{installation}\\Common7\\Tools\\VsDevCmd.bat\" -arch=x64 -host_arch=x64 >nul\r\nif errorlevel 1 exit /b 1\r\nset\r\n");
+await File.WriteAllTextAsync(environmentScript, $"@echo off\r\ncall \"{installation}\\Common7\\Tools\\VsDevCmd.bat\" -arch={architecture} -host_arch={architecture} >nul\r\nif errorlevel 1 exit /b 1\r\nset\r\n");
 var environmentText = await Run("cmd.exe", ["/d", "/c", environmentScript], root);
 var environment = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 foreach (var line in environmentText.Split('\n'))
@@ -66,8 +68,9 @@ foreach (var line in environmentText.Split('\n'))
     var separator = line.IndexOf('=');
     if (separator > 0) environment[line[..separator]] = line[(separator + 1)..].TrimEnd('\r');
 }
-var compiler = Path.Combine(installation, "VC/Tools/Llvm/x64/bin/clang-cl.exe");
-if (!File.Exists(compiler)) compiler = Path.Combine(installation, "VC/Tools/Llvm/bin/clang-cl.exe");
+var compiler = new[] { "VC/Tools/Llvm/ARM64/bin/clang-cl.exe", "VC/Tools/Llvm/x64/bin/clang-cl.exe", "VC/Tools/Llvm/bin/clang-cl.exe" }
+    .Where(path => architecture == "arm64" || !path.Contains("ARM64", StringComparison.Ordinal))
+    .Select(path => Path.Combine(installation, path)).First(File.Exists);
 var compilerVersion = await Run(compiler, ["--version"], source, environment);
 var rustc = await Run("rustc", ["--version"], source, environment);
 var cargo = await Run("cargo", ["--version"], source, environment);
@@ -79,7 +82,7 @@ environment["_LINK_"] = environment.GetValueOrDefault("_LINK_", "") + " Synchron
 // Default configuration is Release. Omitting the 'release' switch avoids
 // enabling optional LTCG. Build only the shared library and embedding harness.
 environment["msbuild_args"] = "/t:embedtest";
-var buildArgs = new[] { "/d", "/c", "vcbuild.bat", "x64", "dll", "nonpm", "cctest", "vs2022" };
+var buildArgs = new[] { "/d", "/c", "vcbuild.bat", architecture, "dll", "nonpm", "cctest" };
 await Run("cmd.exe", buildArgs, source, environment, Path.Combine(root, "artifacts/windows-native-build.log"));
 var release = Path.Combine(source, "out/Release");
 var library = Path.Combine(release, "libnode.dll");
@@ -87,9 +90,10 @@ foreach (var name in new[] { "libnode.dll", "libnode.lib", "embedtest.exe" })
     if (!File.Exists(Path.Combine(release, name))) throw new FileNotFoundException("Windows build is missing " + name);
 // Stage immediately so any later export/verification failure preserves the
 // expensive native outputs for inspection instead of forcing another build.
-var output = Path.Combine(root, "artifacts/native/win-x64");
+var output = Path.Combine(root, "artifacts/native", rid);
 Directory.CreateDirectory(output);
 foreach (var name in new[] { "libnode.dll", "libnode.lib", "embedtest.exe" }) File.Copy(Path.Combine(release, name), Path.Combine(output, name), true);
+await Run("dotnet", ["run", "--file", Path.Combine(root, "scripts/csharp/verify-native-architecture.cs"), "--", "--rid", rid, "--library", library], root);
 var symbols = await Run("dumpbin.exe", ["/exports", library], source, environment);
 var inventory = JsonNode.Parse(await File.ReadAllTextAsync(Path.Combine(root, "artifacts/inputs/abi-inventory.json")))!;
 foreach (var import in inventory["imports"]!.AsArray())
@@ -106,7 +110,7 @@ var record = new
     sourceLockSha256 = await Hash(lockPath), windowsHarnessPatchSha256 = patchHash,
     windowsPointerPatchSha256 = pointerPatchHash, windowsSnapshotPatchSha256 = snapshotPatchHash, sourceCommit,
     node = manifest["node"], nodeApi = manifest["nodeApi"], embedding = manifest["embedding"], patches = manifest["patches"],
-    rid = "win-x64", compiler = compilerVersion, rustc, cargo, python, configureArgs = buildArgs,
+    rid, compiler = compilerVersion, rustc, cargo, python, configureArgs = buildArgs,
     additionalLinkLibraries = new[] { "Synchronization.lib" },
     buildHost = RuntimeInformation.OSDescription, librarySha256 = await Hash(library),
     dependencies, nativeCompatibilityVerified = false

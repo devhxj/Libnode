@@ -1,6 +1,7 @@
 #:property PublishAot=false
 
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Formats.Tar;
 using System.IO.Compression;
 using System.Security.Cryptography;
@@ -12,9 +13,12 @@ if (!OperatingSystem.IsLinux())
     Console.WriteLine("The addon issue lane is Linux-specific; Windows native compatibility is covered by verify-libnode.cs.");
     return;
 }
-var output = Path.Combine(root, "artifacts/upstream-issues");
+var architecture = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" :
+    RuntimeInformation.ProcessArchitecture == Architecture.X64 ? "x64" : throw new PlatformNotSupportedException("Linux issue probes support x64 and ARM64.");
+var rid = "linux-" + architecture;
+var output = Path.Combine(root, "artifacts/upstream-issues", rid);
 Directory.CreateDirectory(output);
-var library = Path.Combine(root, "artifacts/native/linux-x64/libnode.so");
+var library = Path.Combine(root, "artifacts/native/" + rid + "/libnode.so");
 var project = Path.Combine(root, "tests/UpstreamIssues/UpstreamIssues.csproj");
 var build = await Run("dotnet", ["build", project, "--nologo"], TimeSpan.FromMinutes(2));
 if (build.ExitCode != 0) throw new InvalidOperationException(build.Output);
@@ -25,7 +29,7 @@ var compile = await Run(File.Exists(localGcc) ? localGcc : "gcc", ["-shared", "-
 if (compile.ExitCode != 0) throw new InvalidOperationException(compile.Output);
 var assembly = Path.Combine(root, "tests/UpstreamIssues/bin/Debug/net11.0/UpstreamIssues.dll");
 using var fixtures = JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(root, "tests/UpstreamIssues/fixtures.lock.json")));
-var fixture = fixtures.RootElement.GetProperty("rolldown");
+var fixture = fixtures.RootElement.GetProperty(architecture == "arm64" ? "rolldownArm64" : "rolldown");
 var archive = Path.Combine(output, "rolldown.tgz");
 if (!File.Exists(archive))
 {
@@ -72,8 +76,10 @@ foreach (var scenario in scenarios)
     Console.WriteLine($"{scenario}: exit={result.ExitCode}, timeout={result.TimedOut}, elapsed={result.ElapsedMs}ms");
 }
 await using var stream = File.OpenRead(library);
-var report = new { librarySha256 = Convert.ToHexStringLower(await SHA256.HashDataAsync(stream)), fixture = fixture.Clone(), results, unexpected };
+var report = new { rid, librarySha256 = Convert.ToHexStringLower(await SHA256.HashDataAsync(stream)), fixture = fixture.Clone(), results, unexpected };
 await File.WriteAllTextAsync(Path.Combine(output, "results.json"), JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
+// Preserve the initial x64 report location for existing local evidence/tools.
+if (rid == "linux-x64") File.Copy(Path.Combine(output, "results.json"), Path.Combine(root, "artifacts/upstream-issues/results.json"), true);
 if (unexpected.Count != 0) throw new InvalidOperationException("Unexpected issue regression results: " + string.Join(", ", unexpected));
 
 async Task<ProcessResult> Run(string executable, string[] arguments, TimeSpan timeout)

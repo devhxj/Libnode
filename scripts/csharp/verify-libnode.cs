@@ -1,6 +1,7 @@
 #:property PublishAot=false
 
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -8,7 +9,10 @@ using System.Xml.Linq;
 
 var root = Directory.GetCurrentDirectory();
 var windows = OperatingSystem.IsWindows();
-var rid = windows ? "win-x64" : "linux-x64";
+if (RuntimeInformation.ProcessArchitecture is not (Architecture.X64 or Architecture.Arm64))
+    throw new PlatformNotSupportedException("Verification supports native x64 and ARM64 processes.");
+var architecture = RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64";
+var rid = (windows ? "win-" : "linux-") + architecture;
 var libraryName = windows ? "libnode.dll" : "libnode.so";
 var prepareOnly = args.Contains("--prepare-upstream", StringComparer.Ordinal);
 var inputsPrepared = args.Contains("--inputs-prepared", StringComparer.Ordinal);
@@ -65,6 +69,7 @@ if (prepareOnly) return;
 
 var candidateDirectory = Path.Combine(root, "artifacts/native", rid);
 var library = Path.Combine(candidateDirectory, libraryName);
+await Run("dotnet", ["run", "--file", "scripts/csharp/verify-native-architecture.cs", "--", "--rid", rid, "--library", library], root);
 var hash = await Hash(library);
 var nativeRecord = JsonNode.Parse(await File.ReadAllTextAsync(Path.Combine(candidateDirectory, "native-build.json")))!;
 if (nativeRecord["sourceLockSha256"]!.GetValue<string>() != await Hash(Path.Combine(root, "native/libnode/source.lock.json")))

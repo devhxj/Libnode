@@ -10,7 +10,10 @@ using System.Xml.Linq;
 if (args.Length != 2 || args[0] != "--package-version") throw new ArgumentException("Pass --package-version <version>.");
 var version = args[1];
 var root = Directory.GetCurrentDirectory();
-var rid = OperatingSystem.IsWindows() ? "win-x64" : "linux-x64";
+if (RuntimeInformation.ProcessArchitecture is not (Architecture.X64 or Architecture.Arm64))
+    throw new PlatformNotSupportedException("Release consumer supports native x64 and ARM64 processes.");
+var rid = (OperatingSystem.IsWindows() ? "win-" : "linux-") +
+    (RuntimeInformation.ProcessArchitecture == Architecture.Arm64 ? "arm64" : "x64");
 var libraryName = OperatingSystem.IsWindows() ? "libnode.dll" : "libnode.so";
 var packages = Path.Combine(root, "artifacts/release/packages");
 var manifest = JsonNode.Parse(await File.ReadAllTextAsync(Path.Combine(packages, "release-manifest.json")))!;

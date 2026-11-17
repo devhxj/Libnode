@@ -7,6 +7,11 @@ on:
         description: 'Exact commit or tag to build'
         required: true
         type: string
+      architecture:
+        description: 'Native Windows architecture to build and verify'
+        required: false
+        default: x64
+        type: string
       native_build_run_id:
         description: 'Optional previous Windows candidate run to reuse without compiling V8'
         required: false
@@ -22,6 +27,11 @@ on:
       release_ref:
         required: true
         type: string
+      architecture:
+        description: 'Native Windows architecture to build and verify'
+        required: false
+        default: x64
+        type: string
       native_build_run_id:
         required: false
         default: ''
@@ -33,12 +43,20 @@ permissions:
 
 jobs:
   windows-candidate:
-    runs-on: windows-2022
+    runs-on: ${{ inputs.architecture == 'arm64' && 'windows-11-arm' || 'windows-2022' }}
     timeout-minutes: 360
     defaults:
       run:
         shell: cmd
     steps:
+      - name: Validate requested architecture
+        env:
+          TARGET_ARCH: ${{ inputs.architecture || 'x64' }}
+        run: |
+          if "%TARGET_ARCH%"=="x64" exit /b 0
+          if "%TARGET_ARCH%"=="arm64" exit /b 0
+          echo Select x64 or arm64.
+          exit /b 1
       - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
         with:
           ref: ${{ inputs.release_ref || github.sha }}
@@ -51,7 +69,7 @@ jobs:
         run: |
           git config --global core.longpaths true
           rustup toolchain install 1.100.0 --profile minimal
-          choco install nasm --yes --no-progress
+          if /i "%PROCESSOR_ARCHITECTURE%"=="AMD64" choco install nasm --yes --no-progress
       - name: Download and verify locked inputs
         run: dotnet run --file scripts/csharp/prepare-libnode.cs -- --download-node
       - name: Identify native build cache
@@ -63,8 +81,8 @@ jobs:
         uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
         with:
           path: artifacts/sources/node-*/
-          key: windows-native-${{ steps.build-cache.outputs.image }}-${{ hashFiles('native/libnode/source.lock.json') }}-${{ github.run_id }}
-          restore-keys: windows-native-${{ steps.build-cache.outputs.image }}-${{ hashFiles('native/libnode/source.lock.json') }}-
+          key: windows-native-${{ inputs.architecture || 'x64' }}-${{ steps.build-cache.outputs.image }}-${{ hashFiles('native/libnode/source.lock.json') }}-${{ github.run_id }}
+          restore-keys: windows-native-${{ inputs.architecture || 'x64' }}-${{ steps.build-cache.outputs.image }}-${{ hashFiles('native/libnode/source.lock.json') }}-
       - name: Prepare native source without compiling V8
         timeout-minutes: 15
         run: dotnet run --file scripts/csharp/build-libnode.cs -- --prepare-only --inputs-prepared
@@ -72,7 +90,7 @@ jobs:
         if: ${{ inputs.prepare_only }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          name: libnode-win-x64-inputs
+          name: libnode-win-${{ inputs.architecture || 'x64' }}-inputs
           path: artifacts/inputs/
           if-no-files-found: error
           compression-level: 0
@@ -93,13 +111,13 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NATIVE_BUILD_RUN_ID: ${{ inputs.native_build_run_id }}
-        run: dotnet run --file scripts/csharp/wait-windows-build.cs -- "%NATIVE_BUILD_RUN_ID%"
+        run: dotnet run --file scripts/csharp/wait-windows-build.cs -- "%NATIVE_BUILD_RUN_ID%" win-${{ inputs.architecture || 'x64' }}
       - name: Import artifact from prior Windows build
         if: ${{ inputs.native_build_run_id != '' && !inputs.prepare_only }}
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
-          name: libnode-win-x64-build
-          path: artifacts/native/win-x64
+          name: libnode-win-${{ inputs.architecture || 'x64' }}-build
+          path: artifacts/native/win-${{ inputs.architecture || 'x64' }}
           run-id: ${{ inputs.native_build_run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Import Windows build without compiling V8
@@ -109,9 +127,9 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          name: libnode-win-x64-build
+          name: libnode-win-${{ inputs.architecture || 'x64' }}-build
           if-no-files-found: warn
-          path: artifacts/native/win-x64/
+          path: artifacts/native/win-${{ inputs.architecture || 'x64' }}/
       - name: Native tests, Microsoft tests and NuGet consumer
         if: ${{ !inputs.prepare_only }}
         run: dotnet run --file scripts/csharp/verify-libnode.cs -- --inputs-prepared
@@ -119,10 +137,10 @@ jobs:
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
-          name: libnode-win-x64-candidate
+          name: libnode-win-${{ inputs.architecture || 'x64' }}-candidate
           if-no-files-found: warn
           path: |
-            artifacts/native/win-x64/
+            artifacts/native/win-${{ inputs.architecture || 'x64' }}/
             artifacts/verification/
             artifacts/windows-native-build.log
             artifacts/windows-source-prepare.log
