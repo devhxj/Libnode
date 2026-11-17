@@ -12,9 +12,9 @@ The current build is **Node.js v26.13.1 (Lithium LTS)**, verified with
 **Microsoft.JavaScript.NodeApi 0.9.36**. Source archives, commits and patches are
 pinned; builds do not resolve a floating latest version.
 
-:warning: _**Status: 0.1.0 release candidate** — Linux x64 and Windows x64 pass
-native, managed and actual NuGet consumer tests. macOS builds remain future
-candidates. Official publication is pending the final release workflow._
+**Version 0.1.0 is published** for Linux x64 and Windows x64, with native,
+managed and actual NuGet consumer tests passing on both platforms. macOS builds
+remain future candidates. See the [release](https://github.com/devhxj/Libnode/releases/tag/v0.1.0).
 
 ### Documentation
 
