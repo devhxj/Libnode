@@ -12,6 +12,11 @@ on:
         required: false
         default: ''
         type: string
+      prepare_only:
+        description: 'Download and verify pinned inputs only, for diagnosing source preparation'
+        required: false
+        default: false
+        type: boolean
   workflow_call:
     inputs:
       release_ref:
@@ -47,13 +52,23 @@ jobs:
           git config --global core.longpaths true
           rustup toolchain install 1.100.0 --profile minimal
           choco install nasm --yes --no-progress
+      - name: Download and verify locked inputs
+        run: dotnet run --file scripts/csharp/prepare-libnode.cs -- --download-node
+      - name: Preserve source preparation evidence
+        if: ${{ inputs.prepare_only }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: libnode-win-x64-inputs
+          path: artifacts/inputs/
+          if-no-files-found: error
+          compression-level: 0
       - name: Build Windows shared library and harness
-        if: ${{ inputs.native_build_run_id == '' }}
+        if: ${{ inputs.native_build_run_id == '' && !inputs.prepare_only }}
         env:
           RUSTUP_TOOLCHAIN: 1.100.0
         run: dotnet run --file scripts/csharp/build-windows-libnode.cs
       - name: Download prior Windows build
-        if: ${{ inputs.native_build_run_id != '' }}
+        if: ${{ inputs.native_build_run_id != '' && !inputs.prepare_only }}
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           name: libnode-win-x64-build
@@ -61,7 +76,7 @@ jobs:
           run-id: ${{ inputs.native_build_run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Import Windows build without compiling V8
-        if: ${{ inputs.native_build_run_id != '' }}
+        if: ${{ inputs.native_build_run_id != '' && !inputs.prepare_only }}
         run: dotnet run --file scripts/csharp/import-windows-libnode.cs
       - name: Keep native build inputs before testing
         if: always()
@@ -71,6 +86,7 @@ jobs:
           if-no-files-found: warn
           path: artifacts/native/win-x64/
       - name: Native tests, Microsoft tests and NuGet consumer
+        if: ${{ !inputs.prepare_only }}
         run: dotnet run --file scripts/csharp/verify-libnode.cs
       - name: Keep Windows verification evidence
         if: always()
