@@ -25,9 +25,15 @@ on:
         required: false
         default: ''
         type: string
+      windows_build_run_id:
+        description: 'Optional previous Windows candidate run ID; imports and retests without compiling V8'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
   group: libnode-release-${{ inputs.release_ref || github.ref_name }}
@@ -100,6 +106,7 @@ jobs:
     uses: ./.github/workflows/windows-candidate.yml
     with:
       release_ref: ${{ needs.release.outputs.commit }}
+      native_build_run_id: ${{ inputs.windows_build_run_id || '' }}
 
   package:
     needs: [release, verify, verify-windows]
@@ -125,6 +132,8 @@ jobs:
         env:
           PACKAGE_VERSION: ${{ needs.release.outputs.package_version }}
         run: dotnet run --file scripts/csharp/publish-nuget.cs -- --package-version "$PACKAGE_VERSION" --skip-push
+      - name: Release tooling regression checks
+        run: dotnet run --file scripts/csharp/verify-release.cs
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
         with:
           name: libnode-release-packages

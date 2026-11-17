@@ -7,14 +7,24 @@ on:
         description: 'Exact commit or tag to build'
         required: true
         type: string
+      native_build_run_id:
+        description: 'Optional previous Windows candidate run to reuse without compiling V8'
+        required: false
+        default: ''
+        type: string
   workflow_call:
     inputs:
       release_ref:
         required: true
         type: string
+      native_build_run_id:
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   windows-candidate:
@@ -32,14 +42,27 @@ jobs:
         with:
           global-json-file: global.json
       - name: Prepare tools
+        if: ${{ inputs.native_build_run_id == '' }}
         run: |
           git config --global core.longpaths true
           rustup toolchain install 1.100.0 --profile minimal
           choco install nasm --yes --no-progress
       - name: Build Windows shared library and harness
+        if: ${{ inputs.native_build_run_id == '' }}
         env:
           RUSTUP_TOOLCHAIN: 1.100.0
         run: dotnet run --file scripts/csharp/build-windows-libnode.cs
+      - name: Download prior Windows build
+        if: ${{ inputs.native_build_run_id != '' }}
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: libnode-win-x64-build
+          path: artifacts/native/win-x64
+          run-id: ${{ inputs.native_build_run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Import Windows build without compiling V8
+        if: ${{ inputs.native_build_run_id != '' }}
+        run: dotnet run --file scripts/csharp/import-windows-libnode.cs
       - name: Keep native build inputs before testing
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9

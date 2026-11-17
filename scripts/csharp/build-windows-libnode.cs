@@ -54,15 +54,17 @@ var release = Path.Combine(source, "out/Release");
 var library = Path.Combine(release, "libnode.dll");
 foreach (var name in new[] { "libnode.dll", "libnode.lib", "embedtest.exe" })
     if (!File.Exists(Path.Combine(release, name))) throw new FileNotFoundException("Windows build is missing " + name);
+// Stage immediately so any later export/verification failure preserves the
+// expensive native outputs for inspection instead of forcing another build.
+var output = Path.Combine(root, "artifacts/native/win-x64");
+Directory.CreateDirectory(output);
+foreach (var name in new[] { "libnode.dll", "libnode.lib", "embedtest.exe" }) File.Copy(Path.Combine(release, name), Path.Combine(output, name), true);
 var symbols = await Run("dumpbin.exe", ["/exports", library], source, environment);
 var inventory = JsonNode.Parse(await File.ReadAllTextAsync(Path.Combine(root, "artifacts/inputs/abi-inventory.json")))!;
 foreach (var import in inventory["imports"]!.AsArray())
     if (!symbols.Split('\n').Any(line => line.TrimEnd().EndsWith(" " + import!["name"]!.GetValue<string>(), StringComparison.Ordinal)))
         throw new InvalidDataException("Missing Windows embedding export: " + import!["name"]);
 var dependencies = await Run("dumpbin.exe", ["/dependents", library], source, environment);
-var output = Path.Combine(root, "artifacts/native/win-x64");
-Directory.CreateDirectory(output);
-foreach (var name in new[] { "libnode.dll", "libnode.lib", "embedtest.exe" }) File.Copy(Path.Combine(release, name), Path.Combine(output, name), true);
 File.Copy(Path.Combine(source, "LICENSE"), Path.Combine(output, "NODE-LICENSE"), true);
 File.Copy(Path.Combine(root, "native/libnode/licenses/embedding.LICENSE"), Path.Combine(output, "EMBEDDING-LICENSE"), true);
 File.Copy(Path.Combine(root, "NOTICE.txt"), Path.Combine(output, "NOTICE"), true);
@@ -87,6 +89,8 @@ static async Task<string> Hash(string path)
 
 static async Task<string> Run(string executable, string[] arguments, string directory, Dictionary<string, string>? environment = null, string? log = null)
 {
+    if (!Path.IsPathRooted(executable) && environment?.TryGetValue("PATH", out var searchPath) == true)
+        executable = searchPath.Split(Path.PathSeparator).Select(path => Path.Combine(path, executable)).FirstOrDefault(File.Exists) ?? executable;
     Console.WriteLine($"{executable} {string.Join(' ', arguments)}");
     var start = new ProcessStartInfo(executable) { WorkingDirectory = directory, RedirectStandardOutput = true, RedirectStandardError = true };
     foreach (var argument in arguments) start.ArgumentList.Add(argument);

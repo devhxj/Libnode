@@ -83,8 +83,6 @@ jobs:
         run: dotnet run --file scripts/csharp/verify-libnode.cs
       - name: Upstream issue regressions
         run: dotnet run --file scripts/csharp/verify-upstream-issues.cs
-      - name: Release tooling regression checks
-        run: dotnet run --file scripts/csharp/verify-release.cs
       - name: Keep build and verification evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
@@ -100,4 +98,3 @@ jobs:
             artifacts/release-verification/**/??.log
             artifacts/inputs/abi-inventory.json
             artifacts/native-build.log
-            native/libnode/source.lock.json
