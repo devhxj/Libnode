@@ -15,6 +15,16 @@ on:
         description: 'Archive SHA256 printed by native-bundle.cs upload'
         required: true
         type: string
+      include_windows:
+        description: 'Also build or import and verify the Windows candidate'
+        required: false
+        default: false
+        type: boolean
+      windows_build_run_id:
+        description: 'Optional previous Windows build to import without compiling V8'
+        required: false
+        default: ''
+        type: string
 
 permissions:
   contents: read
@@ -60,6 +70,8 @@ jobs:
 
   verify-windows:
     needs: input
+    if: ${{ inputs.include_windows }}
     uses: ./.github/workflows/windows-candidate.yml
     with:
       release_ref: ${{ needs.input.outputs.commit }}
+      native_build_run_id: ${{ inputs.windows_build_run_id || '' }}
