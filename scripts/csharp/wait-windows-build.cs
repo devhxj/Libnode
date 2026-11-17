@@ -16,13 +16,15 @@ for (var attempt = 0; attempt < 350; attempt++)
         throw new InvalidDataException("Native inputs must come from the Windows candidate workflow.");
     var status = metadata["status"]!.GetValue<string>();
     Console.WriteLine($"Windows candidate {runId}: {status}");
-    if (status == "completed")
+    var artifacts = JsonNode.Parse(await Api($"repos/devhxj/Libnode/actions/runs/{runId}/artifacts"))!;
+    if (artifacts["artifacts"]!.AsArray().Any(item => item!["name"]!.GetValue<string>() == "libnode-" + rid + "-build" && item["expired"]!.GetValue<bool>() == false))
     {
-        var artifacts = JsonNode.Parse(await Api($"repos/devhxj/Libnode/actions/runs/{runId}/artifacts"))!;
-        if (!artifacts["artifacts"]!.AsArray().Any(item => item!["name"]!.GetValue<string>() == "libnode-" + rid + "-build" && item["expired"]!.GetValue<bool>() == false))
-            throw new InvalidDataException("Windows candidate completed without reusable native outputs; inspect its build log.");
         Console.WriteLine("Windows native artifact is ready. Import and fresh verification are required.");
         return;
+    }
+    if (status == "completed")
+    {
+        throw new InvalidDataException("Windows candidate completed without reusable native outputs; inspect its build log.");
     }
     await Task.Delay(TimeSpan.FromSeconds(60));
 }
