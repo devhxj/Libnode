@@ -82,3 +82,4 @@ jobs:
             artifacts/native/win-x64/
             artifacts/verification/
             artifacts/windows-native-build.log
+            artifacts/windows-source-prepare.log

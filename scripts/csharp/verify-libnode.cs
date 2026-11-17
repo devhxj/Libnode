@@ -74,7 +74,8 @@ if (await Hash(originalLibrary) != hash || (!windows && !linkage.Contains(origin
     throw new InvalidDataException("Native harness does not link the selected candidate library.");
 var driver = Path.Combine(nodeSource, "test/embedding/test-embedding-c-api.js");
 var nativeLog = await Run(harness, ["c-api", "require(" + JsonSerializer.Serialize(driver) + ")"], nodeSource, "native-tests.log");
-var nativeTestCount = nativeLog.Split('\n').Count(line => line.StartsWith("Run test: ", StringComparison.Ordinal) && line.EndsWith("ok", StringComparison.Ordinal));
+var nativeTestCount = nativeLog.Split('\n').Select(line => line.TrimEnd('\r'))
+    .Count(line => line.StartsWith("Run test: ", StringComparison.Ordinal) && line.EndsWith("ok", StringComparison.Ordinal));
 if (nativeTestCount != 60) throw new InvalidDataException($"Expected 60 reused native cases, observed {nativeTestCount}.");
 
 Directory.CreateDirectory(Path.Combine(upstream, "candidate"));

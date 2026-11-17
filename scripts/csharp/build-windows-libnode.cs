@@ -9,7 +9,9 @@ using System.Text.Json.Nodes;
 if (!OperatingSystem.IsWindows() || RuntimeInformation.ProcessArchitecture != Architecture.X64)
     throw new PlatformNotSupportedException("Build win-x64 on an x64 Windows host with Visual Studio C++/Clang, Python, NASM and Rust.");
 var root = Directory.GetCurrentDirectory();
-await Run("dotnet", ["run", "--file", "scripts/csharp/build-libnode.cs", "--", "--prepare-only"], root);
+Directory.CreateDirectory(Path.Combine(root, "artifacts"));
+await Run("dotnet", ["run", "--file", "scripts/csharp/build-libnode.cs", "--", "--prepare-only"], root,
+    log: Path.Combine(root, "artifacts/windows-source-prepare.log"));
 var lockPath = Path.Combine(root, "native/libnode/source.lock.json");
 var manifest = JsonNode.Parse(await File.ReadAllTextAsync(lockPath))!;
 var source = Path.Combine(root, "artifacts/sources/node-" + manifest["node"]!["tag"]!.GetValue<string>());
