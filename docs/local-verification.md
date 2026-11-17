@@ -3,7 +3,7 @@
 The candidate was built locally on Ubuntu 26.04 x64 with GCC/G++ 15.2.0, Make
 4.4.1, Rust/Cargo 1.100.0 and .NET SDK 11.0.100. Source/patch inputs are fixed in
 [`source.lock.json`](../native/libnode/source.lock.json). This is local development
-evidence; no official package has been published.
+evidence; the current release is [0.2.0](https://github.com/devhxj/Libnode/releases/tag/v0.2.0).
 
 | Check | Result |
 | --- | --- |
@@ -82,3 +82,14 @@ The DLL depends on the Microsoft VC runtime (`MSVCP140`, `VCRUNTIME140` and
 Visual C++ x64 Redistributable. Tests run with `CETCompat=false`; Windows debugger,
 CET, third-party napi-rs addon loading and older Windows deployment baselines
 remain outside this verification result.
+
+## 0.2.0 release verification
+
+[Run 44074076248](https://github.com/devhxj/Libnode/actions/runs/44074076248)
+passed Linux x64, Linux ARM64, Windows x64 and Windows ARM64. Each passed the
+60 native embedding cases, 22 Microsoft embedding/GC tests, 38 separately
+counted mock tests and actual NodeApi consumer. Both Linux architectures also
+passed the 14 issue regressions, including their architecture-specific Rolldown
+addon. The new 30-case Node 26 feature suite passed in each native package
+consumer and again in the final release metapackage consumers. All five NuGet
+packages were published with trusted publishing after the gates passed.

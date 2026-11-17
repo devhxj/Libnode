@@ -37,7 +37,7 @@ and actual managed NuGet package. The embedding API remains experimental upstrea
 | linux-x64 | Initial local development build; glibc minimum not yet established |
 | osx-x64 | Candidate; native Intel build/run pending; upstream minimum macOS 13.5 |
 | osx-arm64 | Candidate; Apple Silicon build/run pending; upstream minimum macOS 13.5 |
-| win-arm64, linux-arm64 | Existing Microsoft assets; migration assessment pending |
+| win-arm64, linux-arm64 | Published in 0.2.0 after native runner, managed, actual NuGet consumer and 30 Node 26 feature checks |
 | win-x86 | Not in Node 26's supported-platform table; explicit migration decision needed |
 | musl / others | Outside the initial acceptance scope |
 

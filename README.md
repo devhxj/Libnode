@@ -12,9 +12,9 @@ The current build is **Node.js v26.13.1 (Lithium LTS)**, verified with
 **Microsoft.JavaScript.NodeApi 0.9.36**. Source archives, commits and patches are
 pinned; builds do not resolve a floating latest version.
 
-**Version 0.1.0 is published** for Linux x64 and Windows x64, with native,
+**Version 0.2.0 is published** for Linux and Windows on x64 and ARM64, with native,
 managed and actual NuGet consumer tests passing on both platforms. macOS builds
-remain future candidates. See the [release](https://github.com/devhxj/Libnode/releases/tag/v0.1.0).
+remain future candidates. See the [release](https://github.com/devhxj/Libnode/releases/tag/v0.2.0).
 
 ### Documentation
 
@@ -28,13 +28,13 @@ remain future candidates. See the [release](https://github.com/devhxj/Libnode/re
 
 ### Minimal example — .NET calling JavaScript
 
-Reference `Microsoft.JavaScript.NodeApi` 0.9.36 and `Jazor.LibNode` 0.1.0. The latter
+Reference `Microsoft.JavaScript.NodeApi` 0.9.36 and `Jazor.LibNode` 0.2.0. The latter
 provides the native runtime, serving the same role as `Microsoft.JavaScript.LibNode`.
 Reference one native runtime package in the application.
 
 ```sh
 dotnet add package Microsoft.JavaScript.NodeApi --version 0.9.36
-dotnet add package Jazor.LibNode --version 0.1.0
+dotnet add package Jazor.LibNode --version 0.2.0
 ```
 
 NodeApi resolves the appropriate native library from the package automatically:
@@ -62,7 +62,7 @@ The package projects produce native runtime assets without adding another manage
 interop layer:
 
 - `Jazor.LibNode` — metapackage for the complete set of validated runtime packages.
-- `Jazor.LibNode.<rid>` — platform library under `runtimes/<rid>/native/`, with source/build metadata and licenses. Published 0.1.0 supports `linux-x64` and `win-x64`; the 0.2.0 release catalog adds `linux-arm64` and `win-arm64` after verification.
+- `Jazor.LibNode.<rid>` — platform library under `runtimes/<rid>/native/`, with source/build metadata and licenses. Version 0.2.0 supports `linux-x64`, `win-x64`, `linux-arm64` and `win-arm64`.
 
 The Linux development candidate passes **60 native embedding cases**, **22 Microsoft
 embedding/GC tests**, **38 separate mock tests**, and an isolated consumer using the
@@ -74,6 +74,10 @@ plus the actual NodeApi NuGet consumer on Windows Server 2022. Install the Micro
 Visual C++ 2015–2022 x64 Redistributable for its VC runtime dependencies. The tested
 Windows .NET host uses `<CETCompat>false</CETCompat>`; see the
 [upstream issue audit](docs/upstream-issue-audit.md) for the managed-layer limitations.
+
+All four platforms also pass 30 Node 26 feature checks through the actual NuGet
+consumer, including Temporal, Web APIs, crypto, workers, WebAssembly, TypeScript
+and SQLite. The final release metapackage repeats these checks on each platform.
 
 Candidate packages are generated under `artifacts/packages/`;
 see [development instructions](README-DEV.md) to reproduce them.
