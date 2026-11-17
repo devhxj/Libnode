@@ -3,5 +3,6 @@
        belong in the release closure. Other build candidates remain unadvertised. -->
   <ItemGroup>
     <LibNodeRuntimePackage Include="linux-x64" />
+    <LibNodeRuntimePackage Include="win-x64" />
   </ItemGroup>
 </Project>

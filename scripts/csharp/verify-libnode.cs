@@ -7,6 +7,9 @@ using System.Text.Json.Nodes;
 using System.Xml.Linq;
 
 var root = Directory.GetCurrentDirectory();
+var windows = OperatingSystem.IsWindows();
+var rid = windows ? "win-x64" : "linux-x64";
+var libraryName = windows ? "libnode.dll" : "libnode.so";
 var prepareOnly = args.SequenceEqual(new[] { "--prepare-upstream" });
 if (args.Length != 0 && !prepareOnly) throw new ArgumentException("Usage: verify-libnode.cs [--prepare-upstream]");
 var inputs = Path.Combine(root, "artifacts/inputs");
@@ -33,6 +36,15 @@ if (!File.Exists(marker))
 }
 if ((await File.ReadAllTextAsync(marker)).Trim() != adaptationHash)
     throw new InvalidOperationException("Upstream test adaptation changed. Prepare a fresh upstream checkout.");
+if (windows)
+{
+    var tests = Path.Combine(upstream, "test/NodejsEmbeddingTests.cs");
+    var text = await File.ReadAllTextAsync(tests);
+    text = text.Replace("\"candidate\", \"libnode.so\"", "\"candidate\", \"libnode.dll\"", StringComparison.Ordinal);
+    if (!text.Contains("\"candidate\", \"libnode.dll\"", StringComparison.Ordinal))
+        throw new InvalidDataException("Windows test candidate selection could not be applied.");
+    await File.WriteAllTextAsync(tests, text);
+}
 var project = Path.Combine(upstream, "test/NodeApi.Test.csproj");
 var frameworkArgs = new[] { "-p:TargetFramework=net11.0", "-p:TargetFrameworks=net11.0", "-p:CETCompat=false" };
 await Run("dotnet", ["build", project, .. frameworkArgs], upstream, "upstream-build.log");
@@ -45,18 +57,20 @@ if (discoveredTests.Length != 22)
     throw new InvalidDataException($"Expected 22 embedding/GC cases at {revision}, discovered {discoveredTests.Length}.");
 if (prepareOnly) return;
 
-var candidateDirectory = Path.Combine(root, "artifacts/native/linux-x64");
-var library = Path.Combine(candidateDirectory, "libnode.so");
+var candidateDirectory = Path.Combine(root, "artifacts/native", rid);
+var library = Path.Combine(candidateDirectory, libraryName);
 var hash = await Hash(library);
 var nativeRecord = JsonNode.Parse(await File.ReadAllTextAsync(Path.Combine(candidateDirectory, "native-build.json")))!;
 if (nativeRecord["sourceLockSha256"]!.GetValue<string>() != await Hash(Path.Combine(root, "native/libnode/source.lock.json")))
     throw new InvalidDataException("Candidate was built from a different source lock.");
 if (nativeRecord["librarySha256"]!.GetValue<string>() != hash) throw new InvalidDataException("Candidate library hash differs from the build manifest.");
+if (windows && nativeRecord["windowsHarnessPatchSha256"]?.GetValue<string>() != await Hash(Path.Combine(root, "native/libnode/patches/windows-shared-harness.patch")))
+    throw new InvalidDataException("Windows harness patch differs from its native build record.");
 var nodeSource = Path.Combine(root, "artifacts/sources/node-" + sourceLock["node"]!["tag"]!.GetValue<string>());
-var harness = Path.Combine(nodeSource, "out/Release/embedtest");
-var linkage = await Run("ldd", [harness], root, "native-harness-linkage.log");
-var originalLibrary = Directory.GetFiles(Path.Combine(nodeSource, "out/Release"), "libnode.so.*").Single();
-if (await Hash(originalLibrary) != hash || !linkage.Contains(originalLibrary, StringComparison.Ordinal))
+var harness = Path.Combine(nodeSource, "out/Release", windows ? "embedtest.exe" : "embedtest");
+var linkage = windows ? "" : await Run("ldd", [harness], root, "native-harness-linkage.log");
+var originalLibrary = windows ? Path.Combine(nodeSource, "out/Release/libnode.dll") : Directory.GetFiles(Path.Combine(nodeSource, "out/Release"), "libnode.so.*").Single();
+if (await Hash(originalLibrary) != hash || (!windows && !linkage.Contains(originalLibrary, StringComparison.Ordinal)))
     throw new InvalidDataException("Native harness does not link the selected candidate library.");
 var driver = Path.Combine(nodeSource, "test/embedding/test-embedding-c-api.js");
 var nativeLog = await Run(harness, ["c-api", "require(" + JsonSerializer.Serialize(driver) + ")"], nodeSource, "native-tests.log");
@@ -64,7 +78,7 @@ var nativeTestCount = nativeLog.Split('\n').Count(line => line.StartsWith("Run t
 if (nativeTestCount != 60) throw new InvalidDataException($"Expected 60 reused native cases, observed {nativeTestCount}.");
 
 Directory.CreateDirectory(Path.Combine(upstream, "candidate"));
-File.Copy(library, Path.Combine(upstream, "candidate/libnode.so"), true);
+File.Copy(library, Path.Combine(upstream, "candidate", libraryName), true);
 var results = Path.Combine(root, "artifacts/verification");
 Directory.CreateDirectory(results);
 await Run("dotnet", ["test", project, "--no-build", .. frameworkArgs, "--filter", filter,
@@ -89,10 +103,11 @@ if (assets["libraries"]!.AsObject().Any(pair => pair.Key.StartsWith("Microsoft.J
 // A local, unpublished candidate version; official packages use the release version.
 var version = "0.0.0-local." + hash[..12];
 var packages = Path.Combine(root, "artifacts/packages");
-await Run("dotnet", ["pack", "src/Jazor.LibNode.Runtime", "-p:LibNodeRid=linux-x64", "-p:JazorReleaseVersion=" + version, "-o", packages], root, "runtime-pack.log");
+await Run("dotnet", ["pack", "src/Jazor.LibNode.Runtime", "-p:LibNodeRid=" + rid, "-p:JazorReleaseVersion=" + version, "-o", packages], root, "runtime-pack.log");
 var consumer = Path.Combine(root, "tests/NuGetConsumer/NuGetConsumer.csproj");
 var packageCache = Path.Combine(root, "artifacts/consumer-packages");
-await Run("dotnet", ["restore", consumer, "-p:CandidatePackageVersion=" + version, "--packages", packageCache,
+var nativePackage = "-p:CandidateNativePackageId=Jazor.LibNode." + rid;
+await Run("dotnet", ["restore", consumer, "-p:CandidatePackageVersion=" + version, nativePackage, "--packages", packageCache,
     "--source", packages, "--source", "https://api.nuget.org/v3/index.json", "--force"], root, "consumer-restore.log");
 var managedVersion = sourceLock["nodeApi"]!["version"]!.GetValue<string>();
 var managedNuspec = XDocument.Load(Path.Combine(packageCache, "microsoft.javascript.nodeapi", managedVersion, "microsoft.javascript.nodeapi.nuspec"));
@@ -101,11 +116,11 @@ if (packageRevision != revision) throw new InvalidDataException($"Managed NuGet 
 var consumerAssets = JsonNode.Parse(await File.ReadAllTextAsync(Path.Combine(root, "tests/NuGetConsumer/obj/project.assets.json")))!;
 if (consumerAssets["libraries"]!.AsObject().Any(pair => pair.Key.StartsWith("Microsoft.JavaScript.LibNode", StringComparison.OrdinalIgnoreCase)))
     throw new InvalidDataException("Consumer graph contains competing native runtime assets.");
-await Run("dotnet", ["run", "--project", consumer, "--no-restore", "-p:CandidatePackageVersion=" + version,
+await Run("dotnet", ["run", "--project", consumer, "--no-restore", "-p:CandidatePackageVersion=" + version, nativePackage,
     "--", hash, Path.Combine(results, "nuget-consumer.json")], root, "consumer-run.log");
 var report = new
 {
-    rid = "linux-x64", librarySha256 = hash,
+    rid, librarySha256 = hash,
     upstreamRevision = revision, adaptationSha256 = adaptationHash,
     nativeTestCount, managedTotal = total, managedPassed = passed,
     discoveredTests, managedOnlyTotal,
@@ -120,8 +135,8 @@ nativeRecord["verification"] = JsonSerializer.SerializeToNode(report);
 nativeRecord["nativeCompatibilityVerified"] = true;
 await File.WriteAllTextAsync(Path.Combine(candidateDirectory, "native-build.json"), nativeRecord.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));
 // Repack the same tested binary with its runtime identity and verification record.
-await Run("dotnet", ["pack", "src/Jazor.LibNode.Runtime", "-p:LibNodeRid=linux-x64", "-p:JazorReleaseVersion=" + version, "-o", packages], root, "runtime-pack-verified.log");
-Console.WriteLine($"Linux candidate passed {nativeTestCount} native cases, {passed} managed tests and the actual NuGet consumer.");
+await Run("dotnet", ["pack", "src/Jazor.LibNode.Runtime", "-p:LibNodeRid=" + rid, "-p:JazorReleaseVersion=" + version, "-o", packages], root, "runtime-pack-verified.log");
+Console.WriteLine($"{rid} candidate passed {nativeTestCount} native cases, {passed} managed tests and the actual NuGet consumer.");
 
 static async Task<string> Hash(string path)
 {

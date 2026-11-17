@@ -1,0 +1,56 @@
+name: Windows native candidate
+
+on:
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      release_ref:
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  windows-candidate:
+    runs-on: windows-2022
+    timeout-minutes: 360
+    defaults:
+      run:
+        shell: cmd
+    steps:
+      - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
+        with:
+          ref: ${{ inputs.release_ref || github.sha }}
+          fetch-depth: 0
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73
+        with:
+          global-json-file: global.json
+      - name: Prepare tools
+        run: |
+          git config --global core.longpaths true
+          rustup toolchain install 1.100.0 --profile minimal
+          choco install nasm --yes --no-progress
+      - name: Build Windows shared library and harness
+        env:
+          RUSTUP_TOOLCHAIN: 1.100.0
+        run: dotnet run --file scripts/csharp/build-windows-libnode.cs
+      - name: Keep native build inputs before testing
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: libnode-win-x64-build
+          if-no-files-found: warn
+          path: artifacts/native/win-x64/
+      - name: Native tests, Microsoft tests and NuGet consumer
+        run: dotnet run --file scripts/csharp/verify-libnode.cs
+      - name: Keep Windows verification evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: libnode-win-x64-candidate
+          if-no-files-found: warn
+          path: |
+            artifacts/native/win-x64/
+            artifacts/verification/
+            artifacts/windows-native-build.log

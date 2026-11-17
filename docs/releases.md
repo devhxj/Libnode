@@ -20,10 +20,11 @@ hardcoded in project files and do not follow the embedded Node version.
   version numbers and platform or minimum-OS changes in the release notes.
 
 [`LibNodePackages.props`](../src/Packaging/LibNodePackages.props) is the release
-catalog. Its initial closure is `Jazor.LibNode` plus `Jazor.LibNode.linux-x64`.
-Windows/macOS remain build candidates; the metapackage does not depend on empty
-or unverified RID packages. Add a RID to the catalog and metapackage only after
-its native build, runtime tests and actual NuGet consumer pass. Packaging checks
+catalog. The 0.1.0 closure is `Jazor.LibNode` plus
+`Jazor.LibNode.linux-x64` and `Jazor.LibNode.win-x64`. macOS remains a build
+candidate; the metapackage does not depend on empty or unverified RID packages.
+Add a RID to the catalog and metapackage only after its native build, runtime
+tests and actual NuGet consumer pass. Packaging checks
 that both declarations agree and that every dependency pins the exact same version.
 
 ## Release notes
@@ -62,8 +63,9 @@ Release notes come directly from that version's curated section.
 
 ## Candidate and packaging checks
 
-The reusable Linux candidate workflow checks out the resolved release **commit**,
-builds native code from locked inputs or imports a local build, then runs:
+The reusable Linux and Windows candidate workflows check out the resolved release
+**commit**, build native code from locked inputs (or import the local Linux build),
+then run:
 
 ```text
 dotnet build Jazor.LibNode.slnx

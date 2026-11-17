@@ -22,7 +22,7 @@ for (var index = 0; index < args.Length; index++)
     }
 }
 if (jobs < 1) throw new ArgumentOutOfRangeException(nameof(jobs));
-if (!OperatingSystem.IsLinux() || RuntimeInformation.ProcessArchitecture != Architecture.X64)
+if ((!OperatingSystem.IsLinux() && !(prepareOnly && OperatingSystem.IsWindows())) || RuntimeInformation.ProcessArchitecture != Architecture.X64)
     throw new PlatformNotSupportedException("The initial build recipe supports linux-x64 only. Other candidate RIDs require their own build and runtime evidence.");
 await Run("dotnet", ["run", "--file", "scripts/csharp/prepare-libnode.cs", "--", "--download-node"], root);
 var lockBytes = await File.ReadAllBytesAsync(Path.Combine(root, "native/libnode/source.lock.json"));

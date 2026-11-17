@@ -13,8 +13,8 @@ The current build is **Node.js v26.13.1 (Lithium LTS)**, verified with
 pinned; builds do not resolve a floating latest version.
 
 :warning: _**Status: Development preview** — Linux x64 is built and tested locally.
-Windows and macOS builds are not yet validated. No official NuGet package has
-been published._
+Windows x64 is being validated in the Windows candidate workflow; macOS builds
+remain future candidates. No official NuGet package has been published._
 
 ### Documentation
 
@@ -55,7 +55,7 @@ The package projects produce native runtime assets without adding another manage
 interop layer:
 
 - `Jazor.LibNode` — metapackage for the complete set of validated runtime packages.
-- `Jazor.LibNode.<rid>` — platform library under `runtimes/<rid>/native/`, with source/build metadata and licenses.
+- `Jazor.LibNode.<rid>` — platform library under `runtimes/<rid>/native/`, with source/build metadata and licenses. The 0.1.0 release closure targets `linux-x64` and `win-x64`.
 
 The Linux development candidate passes **60 native embedding cases**, **22 Microsoft
 embedding/GC tests**, **38 separate mock tests**, and an isolated consumer using the

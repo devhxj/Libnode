@@ -1,0 +1,20 @@
+diff --git a/node.gyp b/node.gyp
+--- a/node.gyp
++++ b/node.gyp
+@@ -1506,16 +1506,12 @@
+         'test/embedding/embedtest_c_cpp_api_threading.cc',
+         'test/embedding/embedtest_main.cc',
+ 
+       ],
+ 
+       'conditions': [
+         ['OS=="solaris"', {
+           'ldflags': [ '-I<(SHARED_INTERMEDIATE_DIR)' ]
+         }],
+-        # Skip cctest while building shared lib node for Windows
+-        [ 'OS=="win" and node_shared=="true"', {
+-          'type': 'none',
+-        }],
+         [ 'node_shared=="true"', {
+           'xcode_settings': {
+             'OTHER_LDFLAGS': [ '-Wl,-rpath,@loader_path', ],

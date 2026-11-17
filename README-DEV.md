@@ -44,8 +44,10 @@ dotnet run --file scripts/csharp/build-libnode.cs -- --jobs 8
 The default local compiler directory is `~/.local/opt/jazor-toolchain/usr/bin`;
 `--toolchain <directory>` selects another directory. Rust/Cargo can be installed
 with the official rustup installer; the builder recognizes `~/.cargo/bin`.
-The native recipe currently targets Linux x64 only. Windows x64 and both macOS
-architectures still require their own build and runtime evidence.
+The Linux recipe targets Linux x64. Windows x64 uses the Node-supported Visual
+Studio 2022/2026 Clang toolchain and is built by `build-windows-libnode.cs` on a
+Windows runner. Both platforms require their own build and runtime evidence;
+macOS architectures remain candidates.
 
 The builder uses the upstream Python/Make build system with `--shared --without-npm`,
 builds the reused embedding harness, checks exports/dependencies, and stages

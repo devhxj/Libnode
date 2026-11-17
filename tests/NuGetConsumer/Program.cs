@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text.Json;
@@ -8,7 +9,9 @@ if (args.Length != 2) throw new ArgumentException("Usage: NuGetConsumer <expecte
 // Resolve through the same NuGet/runtime resolver used by NodeApi, then pass its
 // exact path to the platform. Never let a machine-wide library satisfy this probe.
 var handle = NativeLibrary.Load("libnode", typeof(NodeEmbeddingPlatform).Assembly, null);
-var mapping = File.ReadLines("/proc/self/maps")
+var mapping = OperatingSystem.IsWindows()
+    ? Process.GetCurrentProcess().Modules.Cast<ProcessModule>().Single(module => string.Equals(module.ModuleName, "libnode.dll", StringComparison.OrdinalIgnoreCase)).FileName
+    : File.ReadLines("/proc/self/maps")
     .Select(line => line.Split(' ', StringSplitOptions.RemoveEmptyEntries).Last())
     .First(path => Path.GetFileName(path) == "libnode.so");
 var libraryPath = Path.GetFullPath(mapping);

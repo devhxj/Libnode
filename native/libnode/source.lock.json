@@ -86,5 +86,11 @@
       "path": "native/libnode/patches/0002-linux-addon-symbols.patch",
       "sha256": "722c01693b6839cefeff3b71facbe82d2a0f35904c79f26fb06408b2768c8639"
     }
+  ],
+  "windowsPatches": [
+    {
+      "path": "native/libnode/patches/windows-shared-harness.patch",
+      "sha256": "46e93eb922ca19435f8bfb4efbc36ecdd9ddb1a0c868aa168d609396594b43f9"
+    }
   ]
 }

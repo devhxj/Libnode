@@ -7,6 +7,11 @@ using System.Security.Cryptography;
 using System.Text.Json;
 
 var root = Directory.GetCurrentDirectory();
+if (!OperatingSystem.IsLinux())
+{
+    Console.WriteLine("The addon issue lane is Linux-specific; Windows native compatibility is covered by verify-libnode.cs.");
+    return;
+}
 var output = Path.Combine(root, "artifacts/upstream-issues");
 Directory.CreateDirectory(output);
 var library = Path.Combine(root, "artifacts/native/linux-x64/libnode.so");

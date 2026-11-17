@@ -56,3 +56,9 @@ jobs:
       release_ref: ${{ needs.input.outputs.commit }}
       use_prebuilt: true
       native_archive_sha256: ${{ inputs.native_archive_sha256 }}
+
+  verify-windows:
+    needs: input
+    uses: ./.github/workflows/windows-candidate.yml
+    with:
+      release_ref: ${{ needs.input.outputs.commit }}
