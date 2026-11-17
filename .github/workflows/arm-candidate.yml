@@ -82,6 +82,12 @@ jobs:
           key: ${{ steps.cache.outputs.cache-primary-key }}
       - name: Download previous ARM64 native bundle
         if: ${{ inputs.linux_build_run_id != '' }}
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NATIVE_BUILD_RUN_ID: ${{ inputs.linux_build_run_id }}
+        run: dotnet run --file scripts/csharp/wait-linux-arm64-build.cs -- "$NATIVE_BUILD_RUN_ID"
+      - name: Import artifact from previous Linux ARM64 run
+        if: ${{ inputs.linux_build_run_id != '' }}
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
         with:
           name: libnode-linux-arm64-candidate
