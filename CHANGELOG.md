@@ -13,6 +13,7 @@
 #### 问题修复
 
 - 修复 Linux 进程内加载时原生 addon 无法解析 Node-API 符号的问题，并验证 Rolldown 的原生 minify 调用。by @devhxj
+- 修复 Windows 构建中的指针移动、快照 API 导出和 Rust 同步库链接问题，并通过原生、托管和 NuGet 消费端验证。by @devhxj
 
 #### 其他变更
 
@@ -27,6 +28,7 @@ New Features
 Bug Fixes
 
 - Fix unresolved Node-API symbols when native addons load inside a Linux .NET process, including a verified Rolldown native minify call. by @devhxj
+- Fix Windows pointer moves, snapshot API exports and Rust synchronization linking, verified with native, managed and actual NuGet consumer tests. by @devhxj
 
 Chores
 

@@ -46,6 +46,19 @@ foreach (var rid in rids)
     var hash = await Hash(Path.Combine(directory, libraryName));
     if (record["rid"]!.GetValue<string>() != rid || record["sourceLockSha256"]!.GetValue<string>() != lockHash || record["librarySha256"]!.GetValue<string>() != hash)
         throw new InvalidDataException($"Native build provenance differs from release inputs for {rid}.");
+    if (rid == "win-x64")
+    {
+        foreach (var (field, patch) in new[]
+        {
+            ("windowsHarnessPatchSha256", "windows-shared-harness.patch"),
+            ("windowsPointerPatchSha256", "windows-pointer-exchange.patch"),
+            ("windowsSnapshotPatchSha256", "windows-snapshot-exports.patch")
+        })
+            if (record[field]?.GetValue<string>() != await Hash(Path.Combine(root, "native/libnode/patches", patch)))
+                throw new InvalidDataException("Windows build patch provenance differs: " + patch);
+        if (!record["additionalLinkLibraries"]!.AsArray().Any(item => item!.GetValue<string>() == "Synchronization.lib"))
+            throw new InvalidDataException("Windows build is missing its Rust synchronization link dependency.");
+    }
     var verification = record["verification"];
     if (record["nativeCompatibilityVerified"]?.GetValue<bool>() != true ||
         verification?["librarySha256"]?.GetValue<string>() != hash ||

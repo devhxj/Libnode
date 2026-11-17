@@ -33,7 +33,7 @@ and actual managed NuGet package. The embedding API remains experimental upstrea
 
 | RID | Current decision |
 | --- | --- |
-| win-x64 | First planned acceptance target; MSVC build/run pending |
+| win-x64 | Visual Studio Clang build; 60 native, 22 embedding/GC, 38 mock tests and actual NuGet consumer pass on Windows Server 2022 |
 | linux-x64 | Initial local development build; glibc minimum not yet established |
 | osx-x64 | Candidate; native Intel build/run pending; upstream minimum macOS 13.5 |
 | osx-arm64 | Candidate; Apple Silicon build/run pending; upstream minimum macOS 13.5 |

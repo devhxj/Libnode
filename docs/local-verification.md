@@ -46,7 +46,7 @@ controlled older build userspace and an actual runtime test are still needed.
 
 Remaining platform and delivery work:
 
-- Build and run the Windows x64 candidate and both native macOS architectures.
+- Build and run both native macOS architectures. Windows x64 results are recorded below.
 - Choose and verify the Linux deployment baseline; extend native addon coverage.
 - Decide migration for the old `win-arm64`, `linux-arm64` and `win-x86` assets.
 - Validate target RID versus build-host RID, including cross-publish consumers.
@@ -62,3 +62,23 @@ The candidate includes the Linux addon symbol-scope fix described in the
 [upstream issue audit](upstream-issue-audit.md). The issue lane verifies C addon
 calls, native TypeError behavior and a real Rolldown napi-rs minification call.
 Known managed-layer crashes/hangs are reported separately from passing tests.
+
+## Windows x64 verification
+
+[Windows verification run 44049520239](https://github.com/devhxj/Libnode/actions/runs/44049520239)
+imports the DLL and harness built in run 44046412336, then passes all 60 native
+cases, 22 Microsoft embedding/GC tests, 38 separate mock tests and the actual
+Microsoft.JavaScript.NodeApi 0.9.36 NuGet consumer. No V8 compilation is repeated.
+
+The DLL was built on Windows Server 2022 with Visual Studio 2022 Clang 19.1.5,
+Rust 1.100.0 and Python 3.12.10. Its SHA256 is
+`0352298641fc2199fa50057e6683829cb91a4fb658e18e4da3829e2a319164d0`.
+Windows-specific patches enable the shared harness, fix a pointer move to use
+`nullptr`, and export the public snapshot methods required by the harness.
+`Synchronization.lib` supplies Rust's Windows synchronization imports.
+
+The DLL depends on the Microsoft VC runtime (`MSVCP140`, `VCRUNTIME140` and
+`VCRUNTIME140_1`) and Windows system libraries. Consumers require the Microsoft
+Visual C++ x64 Redistributable. Tests run with `CETCompat=false`; Windows debugger,
+CET, third-party napi-rs addon loading and older Windows deployment baselines
+remain outside this verification result.

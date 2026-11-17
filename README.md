@@ -12,9 +12,9 @@ The current build is **Node.js v26.13.1 (Lithium LTS)**, verified with
 **Microsoft.JavaScript.NodeApi 0.9.36**. Source archives, commits and patches are
 pinned; builds do not resolve a floating latest version.
 
-:warning: _**Status: Development preview** — Linux x64 is built and tested locally.
-Windows x64 is being validated in the Windows candidate workflow; macOS builds
-remain future candidates. No official NuGet package has been published._
+:warning: _**Status: 0.1.0 release candidate** — Linux x64 and Windows x64 pass
+native, managed and actual NuGet consumer tests. macOS builds remain future
+candidates. Official publication is pending the final release workflow._
 
 ### Documentation
 
@@ -67,6 +67,12 @@ The Linux development candidate passes **60 native embedding cases**, **22 Micro
 embedding/GC tests**, **38 separate mock tests**, and an isolated consumer using the
 actual Microsoft NodeApi NuGet package. The local binary requires **glibc 2.39** and
 **GLIBCXX 3.4.32**; older distributions need a separate build and validation.
+
+Windows x64 passes the same 60 native, 22 embedding/GC and 38 separate mock cases,
+plus the actual NodeApi NuGet consumer on Windows Server 2022. Install the Microsoft
+Visual C++ 2015–2022 x64 Redistributable for its VC runtime dependencies. The tested
+Windows .NET host uses `<CETCompat>false</CETCompat>`; see the
+[upstream issue audit](docs/upstream-issue-audit.md) for the managed-layer limitations.
 
 Candidate packages are generated under `artifacts/packages/`;
 see [development instructions](README-DEV.md) to reproduce them.
