@@ -54,6 +54,17 @@ jobs:
           choco install nasm --yes --no-progress
       - name: Download and verify locked inputs
         run: dotnet run --file scripts/csharp/prepare-libnode.cs -- --download-node
+      - name: Identify native build cache
+        id: build-cache
+        run: echo image=%ImageVersion%>>%GITHUB_OUTPUT%
+      - name: Restore Windows native intermediate files
+        if: ${{ inputs.native_build_run_id == '' && !inputs.prepare_only }}
+        id: restore-build
+        uses: actions/cache/restore@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: artifacts/sources/node-*/
+          key: windows-native-${{ steps.build-cache.outputs.image }}-${{ hashFiles('native/libnode/source.lock.json', 'scripts/csharp/build-windows-libnode.cs') }}-${{ github.run_id }}
+          restore-keys: windows-native-${{ steps.build-cache.outputs.image }}-${{ hashFiles('native/libnode/source.lock.json', 'scripts/csharp/build-windows-libnode.cs') }}-
       - name: Prepare native source without compiling V8
         timeout-minutes: 15
         run: dotnet run --file scripts/csharp/build-libnode.cs -- --prepare-only --inputs-prepared
@@ -66,10 +77,17 @@ jobs:
           if-no-files-found: error
           compression-level: 0
       - name: Build Windows shared library and harness
+        id: native-build
         if: ${{ inputs.native_build_run_id == '' && !inputs.prepare_only }}
         env:
           RUSTUP_TOOLCHAIN: 1.100.0
         run: dotnet run --file scripts/csharp/build-windows-libnode.cs -- --source-prepared
+      - name: Preserve Windows native intermediate files
+        if: ${{ always() && inputs.native_build_run_id == '' && !inputs.prepare_only && steps.native-build.outcome != 'skipped' }}
+        uses: actions/cache/save@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: artifacts/sources/node-*/
+          key: ${{ steps.restore-build.outputs.cache-primary-key }}
       - name: Download prior Windows build
         if: ${{ inputs.native_build_run_id != '' && !inputs.prepare_only }}
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
