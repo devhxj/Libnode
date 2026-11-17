@@ -21,6 +21,7 @@ remain future candidates. See the [release](https://github.com/devhxj/Libnode/re
 - [Build, test and package instructions](README-DEV.md)
 - [Native source and embedding port](native/libnode/README.md)
 - [Compatibility results and platform requirements](docs/local-verification.md)
+- [Platform and architecture support](docs/platforms.md)
 - [Audit of 66 open upstream issues](docs/upstream-issue-audit.md)
 - [Releases and NuGet publishing](docs/releases.md)
 - [Node API for .NET documentation](https://microsoft.github.io/node-api-dotnet)

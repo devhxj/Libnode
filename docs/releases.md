@@ -185,3 +185,13 @@ native outputs and repeats compatibility tests without rebuilding V8. Both RID
 packages and the `Jazor.LibNode` metapackage publish as 0.1.0 only after the
 platform gates, package hashes and actual release metapackage consumers pass on
 Linux and Windows.
+
+The 0.2.0 workflow also verifies Linux ARM64 and Windows ARM64 on native runners.
+`linux_arm64_build_run_id` selects a candidate run containing a verified native
+ZIP, and `windows_arm64_build_run_id` selects an ARM64 Windows build artifact.
+Both imports require matching source locks and reset verification before testing.
+Linux bundle reuse across a different release commit is explicit through
+`--reuse-locked-source`: original build and verification commits remain recorded,
+and source lock, archive/file hashes, native tests and consumers still gate packing.
+The final metapackage is tested on all release architectures. An ARM64 label alone
+does not establish support; the ARM64 binary and test evidence must be present.

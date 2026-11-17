@@ -49,6 +49,14 @@ Studio 2022/2026 Clang toolchain and is built by `build-windows-libnode.cs` on a
 Windows runner. Both platforms require their own build and runtime evidence;
 macOS architectures remain candidates.
 
+Run `arm-candidate.yml` manually to build and verify Linux ARM64 and Windows
+ARM64 on native GitHub runners. Both build scripts select the process architecture;
+`verify-native-architecture.cs` checks native runner and ELF/PE architecture.
+The Windows workflow accepts `architecture: arm64` and supports importing an
+existing `libnode-win-arm64-build` artifact for fresh checks without rebuilding.
+`native-bundle.cs -- pack --rid linux-arm64` bundles a verified local Linux ARM64
+build. See [platform support](docs/platforms.md) for 32-bit constraints.
+
 The builder uses the upstream Python/Make build system with `--shared --without-npm`,
 builds the reused embedding harness, checks exports/dependencies, and stages
 `artifacts/native/linux-x64`. Native test and actual NuGet consumer results are
