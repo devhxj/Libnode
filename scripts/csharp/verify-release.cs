@@ -12,6 +12,17 @@ const string version = "0.1.0-releasecheck";
 const string tag = "v" + version;
 Directory.CreateDirectory(fixture);
 var results = new List<object>();
+var node26RecordPath = Path.Combine(root, "artifacts/native/linux-x64/native-build.json");
+var node26RecordText = await File.ReadAllTextAsync(node26RecordPath);
+var node26Record = JsonNode.Parse(node26RecordText)!;
+node26Record["verification"]!["node26SuiteSha256"] = new string('0', 64);
+try
+{
+    await File.WriteAllTextAsync(node26RecordPath, node26Record.ToJsonString());
+    await Expect("stale Node 26 suite evidence blocks publication", root,
+        ["run", "--file", "scripts/csharp/publish-nuget.cs", "--", "--package-version", version, "--skip-push"], "Node 26 runtime feature evidence is incomplete or stale");
+}
+finally { await File.WriteAllTextAsync(node26RecordPath, node26RecordText); }
 await Expect("local packaging requires --skip-push", root,
     ["run", "--file", "scripts/csharp/publish-nuget.cs", "--", "--package-version", version], "Local packaging requires --skip-push");
 await Expect("missing native RID blocks packing", root,

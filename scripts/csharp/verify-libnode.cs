@@ -140,6 +140,11 @@ if (consumerAssets["libraries"]!.AsObject().Any(pair => pair.Key.StartsWith("Mic
     throw new InvalidDataException("Consumer graph contains competing native runtime assets.");
 await Run("dotnet", ["run", "--project", consumer, "--no-restore", "-p:CandidatePackageVersion=" + version, nativePackage,
     "--", hash, Path.Combine(results, "nuget-consumer.json")], root, "consumer-run.log");
+var consumerReport = JsonNode.Parse(await File.ReadAllTextAsync(Path.Combine(results, "nuget-consumer.json")))!;
+var node26SuiteHash = await Hash(Path.Combine(root, "tests/NuGetConsumer/node26-tests.cjs"));
+if (consumerReport["node26SuiteSha256"]?.GetValue<string>() != node26SuiteHash ||
+    consumerReport["node26"]?["total"]?.GetValue<int>() != 30 || consumerReport["node26"]?["passed"]?.GetValue<int>() != 30)
+    throw new InvalidDataException("Node 26 runtime feature evidence is missing or stale.");
 var report = new
 {
     rid, librarySha256 = hash,
@@ -148,11 +153,12 @@ var report = new
     discoveredTests, managedOnlyTotal,
     mockTestsCountedAsNativeEvidence = 0,
     actualNuGetConsumer = "nuget-consumer.json",
+    node26SuiteSha256 = node26SuiteHash, node26Total = 30, node26Passed = 30,
     releaseAcceptanceComplete = false,
     pending = new[] { "Other candidate RIDs", "Minimum deployment baseline", "Jazor integration and release gates", "Additional old RID migration decisions" }
 };
 await File.WriteAllTextAsync(Path.Combine(results, "compatibility.json"), JsonSerializer.Serialize(report, new JsonSerializerOptions { WriteIndented = true }));
-nativeRecord["runtimeIdentity"] = JsonNode.Parse(await File.ReadAllTextAsync(Path.Combine(results, "nuget-consumer.json")))!["runtime"]!.DeepClone();
+nativeRecord["runtimeIdentity"] = consumerReport["runtime"]!.DeepClone();
 nativeRecord["verification"] = JsonSerializer.SerializeToNode(report);
 nativeRecord["nativeCompatibilityVerified"] = true;
 await File.WriteAllTextAsync(Path.Combine(candidateDirectory, "native-build.json"), nativeRecord.ToJsonString(new JsonSerializerOptions { WriteIndented = true }));

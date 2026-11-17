@@ -68,6 +68,9 @@ foreach (var rid in rids)
         verification?["managedPassed"]?.GetValue<int>() != 22 ||
         verification?["managedOnlyTotal"]?.GetValue<int>() != 38)
         throw new InvalidDataException($"Native, managed and consumer compatibility evidence is incomplete for {rid}.");
+    if (verification["node26Total"]?.GetValue<int>() != 30 || verification["node26Passed"]?.GetValue<int>() != 30 ||
+        verification["node26SuiteSha256"]?.GetValue<string>() != await Hash(Path.Combine(root, "tests/NuGetConsumer/node26-tests.cjs")))
+        throw new InvalidDataException("Node 26 runtime feature evidence is incomplete or stale for " + rid);
     identities.Add(rid, hash);
 }
 // Each Linux runtime must have addon/issue evidence for that exact binary.

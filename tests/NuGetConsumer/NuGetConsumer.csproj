@@ -6,6 +6,7 @@
     <CandidateNativePackageId Condition="'$(CandidateNativePackageId)' == ''">Jazor.LibNode.linux-x64</CandidateNativePackageId>
   </PropertyGroup>
   <ItemGroup>
+    <None Update="node26-tests.cjs" CopyToOutputDirectory="PreserveNewest" />
     <PackageReference Include="Microsoft.JavaScript.NodeApi" Version="$(NodeApiVersion)" />
     <PackageReference Include="$(CandidateNativePackageId)" Version="$(CandidatePackageVersion)" />
   </ItemGroup>

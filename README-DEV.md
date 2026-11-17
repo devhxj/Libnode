@@ -83,6 +83,18 @@ managed failures are reported as known limitations; they do not count as passing
 native compatibility tests. A pinned Rolldown addon is downloaded and verified by
 SHA512, then loaded and called directly without Node/npm CLI tooling.
 
+The actual NuGet consumer also runs 30 Node 26 feature checks from
+`tests/NuGetConsumer/node26-tests.cjs`. Coverage includes Temporal calendar/DST and
+nanoseconds, iterator helpers, Set composition, Float16Array, JSON source revivers,
+Unicode regex, structured clone/transfer, Web Crypto/OpenSSL, Web Streams and
+compression, fetch over data/loopback HTTP, cancellation, WebAssembly, Worker
+transfers/Atomics, ESM/top-level await, TypeScript stripping, SQLite, filesystem,
+AsyncLocalStorage, ICU, V8 serialization and stream pipelines. These are embedded
+runtime checks against the selected native package, not a system Node executable.
+The report records every result, Node/process architecture and suite SHA256.
+All 30 must pass on every release platform; changing the suite invalidates old
+verification evidence. The final release metapackage consumer repeats the suite.
+
 ## Candidate packages
 
 After native verification and the issue regression lane pass, pack the complete

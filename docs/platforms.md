@@ -29,6 +29,10 @@ regressions with a pinned ARM64 Rolldown addon. Release packaging requires
 evidence matching each exact binary and runs the final metapackage consumer on
 each platform before publishing.
 
+The next release also requires the consumer's 30 Node 26 feature checks on each
+architecture. The original native and Microsoft tests remain separate evidence;
+feature checks do not replace them.
+
 Sources: [pinned Node 26 BUILDING.md](https://github.com/nodejs/node/blob/e9c277643b0249c50f6e6de5413be8a88ea11b6a/BUILDING.md),
 [Node 26 Windows build restriction](https://github.com/nodejs/node/blob/e9c277643b0249c50f6e6de5413be8a88ea11b6a/vcbuild.bat),
 [.NET 11 supported operating systems](https://github.com/dotnet/core/blob/main/release-notes/11.0/supported-os.md),
