@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Jazor.LibNode.$(LibNodeRid)</PackageId>
+    <NativeInputDirectory>$(NativeArtifactsRoot)/$(LibNodeRid)</NativeInputDirectory>
+    <NativeLibraryName Condition="'$(LibNodeRid)' == 'win-x64'">libnode.dll</NativeLibraryName>
+    <NativeLibraryName Condition="'$(LibNodeRid)' == 'linux-x64'">libnode.so</NativeLibraryName>
+    <NativeLibraryName Condition="'$(LibNodeRid)' == 'osx-x64' or '$(LibNodeRid)' == 'osx-arm64'">libnode.dylib</NativeLibraryName>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="$(NativeInputDirectory)/$(NativeLibraryName)" Pack="true" PackagePath="runtimes/$(LibNodeRid)/native/" />
+    <None Include="$(NativeInputDirectory)/native-build.json" Pack="true" PackagePath="/" />
+    <None Include="$(NativeInputDirectory)/NODE-LICENSE" Pack="true" PackagePath="/" />
+    <None Include="$(NativeInputDirectory)/EMBEDDING-LICENSE" Pack="true" PackagePath="/" />
+    <None Include="$(NativeInputDirectory)/NOTICE" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <Target Name="RequireNativeCandidate" BeforeTargets="Pack;GenerateNuspec">
+    <Error Condition="'$(NativeLibraryName)' == ''" Text="Pass -p:LibNodeRid=win-x64, linux-x64, osx-x64, or osx-arm64. These are candidate targets, not validated support claims." />
+    <Error Condition="!Exists('$(NativeInputDirectory)/$(NativeLibraryName)')" Text="Missing candidate native library: $(NativeInputDirectory)/$(NativeLibraryName)" />
+    <Error Condition="!Exists('$(NativeInputDirectory)/native-build.json')" Text="Missing native-build.json provenance manifest." />
+    <Error Condition="!Exists('$(NativeInputDirectory)/NODE-LICENSE') or !Exists('$(NativeInputDirectory)/EMBEDDING-LICENSE') or !Exists('$(NativeInputDirectory)/NOTICE')" Text="Missing upstream license or third-party notice." />
+  </Target>
+</Project>

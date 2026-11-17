@@ -1,0 +1,56 @@
+name: Linux native candidate
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    paths:
+      - native/**
+      - scripts/csharp/**
+      - src/**
+      - tests/**
+      - .github/workflows/native-candidate.yml
+      - Directory.Build.props
+      - global.json
+      - Jazor.LibNode.slnx
+
+permissions:
+  contents: read
+
+jobs:
+  linux-candidate:
+    # Development evidence only: ubuntu-24.04 is not a minimum-glibc support claim.
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@f548e57e544e1ff5a4c46bf1e1b8685f8e4a348a
+      - uses: actions/setup-dotnet@0f4a354dd5547a28c70b7853dbd95d5b67886e73
+        with:
+          dotnet-version: 11.0.100
+      - name: Install native tools
+        run: sudo apt-get update && sudo apt-get install --yes g++-13 make python3 xz-utils libatomic1
+      - name: Select Rust toolchain
+        run: rustup toolchain install 1.100.0 --profile minimal
+      - name: Build package projects
+        run: dotnet build Jazor.LibNode.slnx
+      - name: Build candidate and upstream harness
+        env:
+          CC: gcc-13
+          CXX: g++-13
+          RUSTUP_TOOLCHAIN: 1.100.0
+        run: dotnet run --file scripts/csharp/build-libnode.cs -- --jobs 4
+      - name: Reused tests and actual NuGet consumer
+        run: dotnet run --file scripts/csharp/verify-libnode.cs
+      - name: Keep build and verification evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
+        with:
+          name: libnode-linux-x64-candidate
+          if-no-files-found: error
+          path: |
+            artifacts/native/
+            artifacts/packages/
+            artifacts/verification/
+            artifacts/inputs/abi-inventory.json
+            artifacts/native-build.log
+            native/libnode/source.lock.json

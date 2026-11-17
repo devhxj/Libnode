@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>Jazor.LibNode</PackageId>
+    <NuspecFile>Jazor.LibNode.nuspec</NuspecFile>
+    <NuspecProperties>version=$(PackageVersion);root=$(MSBuildThisFileDirectory)../..</NuspecProperties>
+  </PropertyGroup>
+  <ItemGroup>
+    <CandidateRid Include="win-x64;linux-x64;osx-x64;osx-arm64" />
+  </ItemGroup>
+  <Target Name="RequireRuntimePackages" BeforeTargets="Pack;GenerateNuspec">
+    <Error Condition="'$(RuntimePackageDirectory)' == ''" Text="Pass -p:RuntimePackageDirectory containing all four packed RID candidates." />
+    <Error Condition="!Exists('$(RuntimePackageDirectory)/Jazor.LibNode.%(CandidateRid.Identity).$(PackageVersion).nupkg')" Text="Missing RID package: Jazor.LibNode.%(CandidateRid.Identity).$(PackageVersion).nupkg" />
+  </Target>
+</Project>

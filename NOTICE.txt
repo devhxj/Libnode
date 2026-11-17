@@ -1,0 +1,21 @@
+Jazor.LibNode contains Jazor-owned build and packaging code under LICENSE.txt.
+
+Native Node.js builds include third-party software. Each native package must
+include the full LICENSE file from the pinned Node source as NODE-LICENSE; that
+file contains Node's copyright and bundled third-party license notices.
+
+The embedding port and reused native test sources derive from:
+https://github.com/vmoroz/nodejs-node
+commit 3752ce263fab860cb144b7488ee2123fe92614c9
+Their upstream Node license is preserved in native/libnode/licenses/embedding.LICENSE
+and included in native distributions as EMBEDDING-LICENSE.
+
+Managed ABI input and reused test sources derive from:
+https://github.com/microsoft/node-api-dotnet
+commit 0483aa01a76e88ccb8f9de0b3a89202b538ae41e
+Copyright (c) Microsoft Corporation.
+Copyright (c) 2022 Jason Ginchereau.
+Licensed under the MIT License; preserved in native/libnode/licenses/node-api-dotnet.LICENSE.
+
+SigmaGmbH/dotnet-libnode-docker was reviewed as a build reference at commit
+671604d5adc6fef3e1686fdd84a13499b292eb85. No code was copied from that repository.

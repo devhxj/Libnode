@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "issue": "https://github.com/devhxj/Jazor/issues/139",
+  "checkedAt": "2026-11-17",
+  "node": {
+    "tag": "v26.13.1",
+    "commit": "e9c277643b0249c50f6e6de5413be8a88ea11b6a",
+    "lts": "Lithium",
+    "archive": "https://nodejs.org/dist/v26.13.1/node-v26.13.1.tar.xz",
+    "sha256": "a7f6204ff63b6a2cd274d48903285abb86ed53a99070e532d4c2fd787457d9e6"
+  },
+  "nodeApi": {
+    "package": "Microsoft.JavaScript.NodeApi",
+    "version": "0.9.36",
+    "commit": "0483aa01a76e88ccb8f9de0b3a89202b538ae41e",
+    "archive": "https://codeload.github.com/microsoft/node-api-dotnet/tar.gz/0483aa01a76e88ccb8f9de0b3a89202b538ae41e",
+    "sha256": "8da25d9701d525c94f884ee61a60c0bf06063ae100415f9108d2eb6bdabcafbf"
+  },
+  "embedding": {
+    "repository": "https://github.com/vmoroz/nodejs-node",
+    "baseCommit": "53a57efd83a18efe7a84bf1b460acc789139939b",
+    "commit": "3752ce263fab860cb144b7488ee2123fe92614c9",
+    "apiVersion": 1,
+    "diff": "https://github.com/vmoroz/nodejs-node/compare/53a57efd83a18efe7a84bf1b460acc789139939b...3752ce263fab860cb144b7488ee2123fe92614c9.diff",
+    "diffSha256": "b4992251ee518c4e5d96dacae53fa11a667d9875be9aee69813db38a4d7535b8"
+  },
+  "reference": {
+    "repository": "https://github.com/SigmaGmbH/dotnet-libnode-docker",
+    "commit": "671604d5adc6fef3e1686fdd84a13499b292eb85",
+    "role": "Build reference only; no code copied. Node 20.9.0, NodeApi 0.7.30, GCC 11, x86_64-linux."
+  },
+  "testAdaptation": {
+    "path": "native/libnode/patches/nodeapi-tests.patch",
+    "sha256": "4f91d771275fc9e30e571ffeb5d231dd8d3511f87e358fad3af8a61360534fc2"
+  },
+  "candidateRids": [
+    "win-x64",
+    "linux-x64",
+    "osx-x64",
+    "osx-arm64"
+  ],
+  "validatedRids": [],
+  "migrationReviewRids": [
+    "win-arm64",
+    "linux-arm64",
+    "win-x86"
+  ],
+  "files": [
+    {
+      "path": "embedding/src/node_embedding_api.h",
+      "url": "https://raw.githubusercontent.com/vmoroz/nodejs-node/3752ce263fab860cb144b7488ee2123fe92614c9/src/node_embedding_api.h",
+      "sha256": "fd7b1c4ed110d9ebbf88c5c04d5dd5fc9808eb7153a77fbd9d67162c38e44b88"
+    },
+    {
+      "path": "embedding/src/node_embedding_api.cc",
+      "url": "https://raw.githubusercontent.com/vmoroz/nodejs-node/3752ce263fab860cb144b7488ee2123fe92614c9/src/node_embedding_api.cc",
+      "sha256": "da52d03b1b46645004ce690809b4b49c6605e1f00dd7fa82e9708cc900760ae6"
+    },
+    {
+      "path": "embedding/src/node_embedding_api_cpp.h",
+      "url": "https://raw.githubusercontent.com/vmoroz/nodejs-node/3752ce263fab860cb144b7488ee2123fe92614c9/src/node_embedding_api_cpp.h",
+      "sha256": "64b7edf87bb09b87ffab90dfa00f557e3d45bc811051216e2dd7cba58fd504cb"
+    },
+    {
+      "path": "managed/NodejsRuntime.Embedding.cs",
+      "url": "https://raw.githubusercontent.com/microsoft/node-api-dotnet/0483aa01a76e88ccb8f9de0b3a89202b538ae41e/src/NodeApi/Runtime/NodejsRuntime.Embedding.cs",
+      "sha256": "0310fa701d18320513f3f9fbde8aea536f6f6600a6a0cfa4b040cec407426fdd"
+    },
+    {
+      "path": "licenses/node-api-dotnet.LICENSE",
+      "url": "https://raw.githubusercontent.com/microsoft/node-api-dotnet/0483aa01a76e88ccb8f9de0b3a89202b538ae41e/LICENSE",
+      "sha256": "dae98d8f168ea5049d58d9e40e82e845692aa1bfad9a4d53ee3479d6d365053a"
+    },
+    {
+      "path": "licenses/embedding.LICENSE",
+      "url": "https://raw.githubusercontent.com/vmoroz/nodejs-node/3752ce263fab860cb144b7488ee2123fe92614c9/LICENSE",
+      "sha256": "4f0e8660d7fe2f8f7759a54c53907300c555992b580e846b30b75121c53ad180"
+    }
+  ],
+  "patches": [
+    {
+      "path": "native/libnode/patches/0001-node26-embedding.patch",
+      "sha256": "58ccf3879a6302c3ebfcc5ba3f4fa315243a28bf7d8019eb07eaecac46b43845"
+    }
+  ]
+}

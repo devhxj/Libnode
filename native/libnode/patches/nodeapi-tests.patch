@@ -1,0 +1,61 @@
+diff --git a/Directory.Packages.props b/Directory.Packages.props
+index 973b56f..d0f4d3e 100644
+--- a/Directory.Packages.props
++++ b/Directory.Packages.props
+@@ -8,7 +8,7 @@
+     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.1.0" /><!-- 4.1.0 is compatible with .NET Standard -->
+     <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" />
+     <PackageVersion Include="Microsoft.JavaScript.LibNode" Version="20.1800.203" />
+-    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
++    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.12.0" />
+     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
+     <PackageVersion Include="Nerdbank.GitVersioning" Version="3.10.91" />
+     <PackageVersion Include="Nullability.Source" Version="2.1.0" />
+@@ -16,7 +16,7 @@
+     <PackageVersion Include="System.Reflection.Emit" Version="4.7.0" />
+     <PackageVersion Include="System.Reflection.MetadataLoadContext" Version="6.0.0" />
+     <PackageVersion Include="xunit" Version="2.4.2" />
+-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.4.5" />
++    <PackageVersion Include="xunit.runner.visualstudio" Version="4.0.1" />
+     <PackageVersion Include="XmlDocMarkdown.Core" Version="2.9.0" />
+   </ItemGroup>
+ </Project>
+diff --git a/global.json b/global.json
+index fe35740..f421dad 100644
+--- a/global.json
++++ b/global.json
+@@ -1,7 +1,7 @@
+ {
+   "sdk": {
+-    "version": "10.0.303",
+-    "allowPrerelease": true,
+-    "rollForward": "latestFeature"
++    "version": "11.0.100",
++    "allowPrerelease": false,
++    "rollForward": "latestMinor"
+   }
+ }
+diff --git a/test/NodeApi.Test.csproj b/test/NodeApi.Test.csproj
+index da4d963..7f59896 100644
+--- a/test/NodeApi.Test.csproj
++++ b/test/NodeApi.Test.csproj
+@@ -28,7 +28,6 @@
+   </ItemGroup>
+ 
+   <ItemGroup>
+-    <PackageReference Include="Microsoft.JavaScript.LibNode" />
+     <PackageReference Include="Microsoft.NET.Test.Sdk" />
+     <PackageReference Include="xunit" />
+     <PackageReference Include="xunit.runner.visualstudio" />
+diff --git a/test/NodejsEmbeddingTests.cs b/test/NodejsEmbeddingTests.cs
+index 1785dec..f458f5c 100644
+--- a/test/NodejsEmbeddingTests.cs
++++ b/test/NodejsEmbeddingTests.cs
+@@ -26,6 +26,7 @@ public class NodejsEmbeddingTests
+     internal static NodeEmbeddingPlatform NodejsPlatform { get; } =
+         new(new NodeEmbeddingPlatformSettings
+         {
++            LibNodePath = Path.Combine(GetRepoRootDirectory(), "candidate", "libnode.so"),
+             Args = new[] { "node", "--expose-gc" }
+         });
+ 

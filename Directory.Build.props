@@ -1,0 +1,29 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NodeApiVersion>0.9.36</NodeApiVersion>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Authors>Jazor contributors</Authors>
+    <RepositoryUrl>https://github.com/devhxj/Libnode</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageProjectUrl>https://github.com/devhxj/Libnode</PackageProjectUrl>
+    <Description>Node.js LTS native embedding runtime for Microsoft.JavaScript.NodeApi.</Description>
+    <NativeArtifactsRoot Condition="'$(NativeArtifactsRoot)' == ''">$(MSBuildThisFileDirectory)artifacts/native</NativeArtifactsRoot>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)LICENSE.txt" Pack="true" PackagePath="/" />
+    <None Include="$(MSBuildThisFileDirectory)README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <Target Name="RequireReleaseVersion" BeforeTargets="Pack;GenerateNuspec">
+    <!-- The parent Jazor release supplies the lockstep tag version. -->
+    <Error Condition="'$(JazorReleaseVersion)' == ''" Text="Pass -p:JazorReleaseVersion with the version selected by Jazor's release tag." />
+  </Target>
+  <PropertyGroup Condition="'$(JazorReleaseVersion)' != ''">
+    <PackageVersion>$(JazorReleaseVersion)</PackageVersion>
+  </PropertyGroup>
+</Project>

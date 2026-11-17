@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <CETCompat>false</CETCompat>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.JavaScript.NodeApi" Version="$(NodeApiVersion)" />
+    <PackageReference Include="Jazor.LibNode.linux-x64" Version="$(CandidatePackageVersion)" />
+  </ItemGroup>
+</Project>

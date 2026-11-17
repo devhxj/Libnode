@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
+  <metadata>
+    <id>Jazor.LibNode</id>
+    <version>$version$</version>
+    <authors>Jazor contributors</authors>
+    <projectUrl>https://github.com/devhxj/Libnode</projectUrl>
+    <repository type="git" url="https://github.com/devhxj/Libnode" />
+    <description>Node.js LTS native embedding runtime for Microsoft.JavaScript.NodeApi.</description>
+    <license type="file">LICENSE.txt</license>
+    <readme>README.md</readme>
+    <dependencies>
+      <dependency id="Jazor.LibNode.win-x64" version="[$version$]" />
+      <dependency id="Jazor.LibNode.linux-x64" version="[$version$]" />
+      <dependency id="Jazor.LibNode.osx-x64" version="[$version$]" />
+      <dependency id="Jazor.LibNode.osx-arm64" version="[$version$]" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="$root$/LICENSE.txt" target="/" />
+    <file src="$root$/README.md" target="/" />
+  </files>
+</package>
