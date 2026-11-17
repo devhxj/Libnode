@@ -54,6 +54,8 @@ jobs:
           choco install nasm --yes --no-progress
       - name: Download and verify locked inputs
         run: dotnet run --file scripts/csharp/prepare-libnode.cs -- --download-node
+      - name: Prepare native source without compiling V8
+        run: dotnet run --file scripts/csharp/build-libnode.cs -- --prepare-only
       - name: Preserve source preparation evidence
         if: ${{ inputs.prepare_only }}
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9
