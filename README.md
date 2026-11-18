@@ -1,5 +1,20 @@
 # Libnode: Node.js LTS for .NET
 
+> [!IMPORTANT]
+> This project is retired. Replace `Jazor.LibNode` with Microsoft's
+> `Microsoft.JavaScript.LibNode` version `26.0.18`. It ships Node.js v26.13.1
+> for Windows, Linux, and macOS on x64 and ARM64.
+> [Microsoft.JavaScript.LibNode on NuGet](https://www.nuget.org/packages/Microsoft.JavaScript.LibNode/26.0.18)
+
+```sh
+dotnet remove package Jazor.LibNode
+dotnet add package Microsoft.JavaScript.LibNode --version 26.0.18
+```
+
+The documentation below describes the historical Jazor.LibNode releases.
+For the Linux HTTPS crash reported against Jazor.LibNode 0.2.0, see
+[#1](https://github.com/devhxj/Libnode/issues/1).
+
 This project builds Node.js as a native shared library for embedding JavaScript
 in .NET applications, referencing and compatible with
 [Microsoft's Node API for .NET](https://github.com/microsoft/node-api-dotnet).
